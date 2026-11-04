@@ -111,3 +111,11 @@ test('comparison estimates apply occurrence counts once and reject invalid input
   assert.equal(estimateChoice(ai, null, NaN, 'once', 1, 'energy'), null);
   assert.equal(estimateChoice(ai, null, 1, 'unknown', 1, 'energy'), null);
 });
+
+test('the general toilet example applies the WELS flush mix once per flush', () => {
+  const group = groups.find(entry => entry.id === 'toilet-flush');
+  const toilet = option(group.id, 'dual-flush-mix');
+  const { amount, times, period } = defaultUsage(group, toilet);
+  assert.equal(toilet.values.tapWater, 3.3);
+  assert.equal(estimateChoice(toilet, null, amount, period, times, 'water'), (4 * 3 + 4.5) * 365);
+});

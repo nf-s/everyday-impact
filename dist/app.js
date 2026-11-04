@@ -1,5 +1,5 @@
 import { groups } from './data/catalogue.js';
-import { goodsGroups, labourEvidence } from './data/goods.js';
+import { labourEvidence } from './data/goods.js';
 import { metrics, comparisonMetrics, periods, validAmount, metricForOption, estimateChoice, formatEstimate, raw } from './model.js';
 import { defaultUsage } from './defaults.js';
 import { activityPicker } from './picker.js';
@@ -78,6 +78,7 @@ function selectField(text, name, values, selected) {
 }
 
 function itemName(group, item) {
+  if (item.genericEvidence) return item.label;
   if (group.id === 'ai-request') return 'Gemini text prompt';
   if (group.id === 'uk-diets') return item.label + ' diet';
   if (group.id === 'au-grid-electricity') return 'Grid electricity · ' + item.label;
@@ -86,10 +87,10 @@ function itemName(group, item) {
 }
 
 function choiceTitle(choice) {
-  const { group, before, after } = selections(choice);
+  const { group, before, afterGroup, after } = selections(choice);
   const name = itemName(group, before);
   if (choice.kind === 'skip') return 'Skip ' + name;
-  if (after) return name + ' → ' + itemName(group, after);
+  if (after) return name + ' → ' + itemName(afterGroup, after);
   return name;
 }
 
@@ -100,16 +101,29 @@ const foodSynonyms = [
   ['rolled oats', 'porridge oatmeal']
 ];
 
+function replacementGroup(group, item) {
+  return item.replacementBasis || (item.sourceCode ? 'agribalyse' : group.id);
+}
+
+function genericHint(item) {
+  if (item.genericHint) return item.genericHint;
+  const evidence = item.genericEvidence;
+  if (evidence?.method === 'median') return 'Median of ' + evidence.contributors.length + ' records';
+  if (evidence?.method === 'representative') return 'Reference example';
+  return '';
+}
+
 const itemEntries = groups.flatMap(group => group.options.map(item => ({
   label: itemName(group, item), groupLabel: group.label,
   categoryLabel: titleCase(group.category), categoryPath: item.categoryPath,
+  generic: item.generic === true, genericHint: genericHint(item),
   aliases: [
-    item.sourceCode, item.sourceName, item.sourceFrenchName, group.category, group.id, item.id,
-    ...foodSynonyms.filter(([term]) => item.sourceCode && item.label.toLowerCase().includes(term)).map(([, aliases]) => aliases),
+    item.sourceCode, item.sourceName, item.sourceFrenchName, item.genericHint, group.category, group.id, item.id,
+    ...foodSynonyms.filter(([term]) => group.category === 'food' && item.label.toLowerCase().includes(term)).map(([, aliases]) => aliases),
     group.id === 'ai-request' ? 'LLM chatbot question' : ''
   ].join(' '),
   qualityLabel: item.qualityWarning ? (item.dqr > 4 ? 'Low data quality' : 'Data quality caution') : '',
-  replacementGroup: item.sourceCode ? 'agribalyse' : group.id,
+  replacementGroup: replacementGroup(group, item),
   choice: defaultChoice(group, item)
 })));
 // The French product groups share a source, system boundary and mass denominator.
@@ -191,6 +205,7 @@ function renderCard(index, keepOpen = false) {
   const description = el('p', 'choice-context', usageText(choice));
   picker.append(description);
   for (const item of [before, after]) {
+    if (item?.genericHint) picker.append(el('p', 'choice-context', item.genericHint));
     if (item?.qualityWarning) picker.append(el('p', 'choice-context', item.label + ' · ' + item.qualityWarning));
   }
   const advanced = el('details', 'advanced');
@@ -204,7 +219,7 @@ function renderCard(index, keepOpen = false) {
   fields.append(pair);
   if (choice.period !== 'once') fields.append(numericField('Times per ' + { daily: 'day', weekly: 'week', monthly: 'month' }[choice.period], 'times', choice.times));
   const alternatives = [['footprint', 'Footprint of this activity'], ['skip', 'Change from skipping this activity']];
-  const replacements = replacementPools.get(before.sourceCode ? 'agribalyse' : group.id);
+  const replacements = replacementPools.get(replacementGroup(group, before));
   if (replacements.length > 1) alternatives.push(['swap', 'Change from replacing this activity']);
   fields.append(selectField('Estimate', 'alternative', alternatives, choice.kind));
   if (choice.kind === 'swap') {
@@ -314,7 +329,7 @@ function renderResults() {
   else if (!body.rows.length) notes.push('No shared estimates. Clear the checkbox to see the available figures.');
   else if (missing) notes.push('“No estimate” means a comparable figure is unavailable for that measure.');
   if (waterScopes.size > 1) notes.push('Water volumes cover different uses. The labels show what each source counts.');
-  if (entries.some(entry => goodsGroups.includes(entry.group))) notes.push('Goods use the production or lifetime boundary shown in Details.');
+  if (entries.some(entry => entry.group.category === 'goods')) notes.push('Goods use the production or lifetime boundary shown in Details.');
   view('electronics-credit').hidden = !entries.some(entry => entry.group.id === 'digital-devices');
   view('measure-note').textContent = notes.join(' ');
   view('measure-note').hidden = !notes.length;

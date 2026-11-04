@@ -4,6 +4,8 @@
 
 Click a choice to browse categories and subcategories, or type to search across the catalogue. Choose an item, activity or lifestyle change to compare its impact over 12 months. Use the plus button to add choices. Advanced lets you edit the illustrative quantity and schedule, skip the activity, or choose a replacement with a compatible unit and evidence base. Bars compare estimates within each measure. Open Details to see the calculation, assumptions and evidence.
 
+General choices appear first. Open **Specific items** for individual models and food variants, or search for them directly. Details identifies the reference item or shows how the median was calculated for that measure. For example, the clothes dryer estimate uses full loads from 8 kg registrations in the Australian GEMS register.
+
 Run `npm start` with Python 3 installed, then open http://127.0.0.1:8000. Run `npm test` with Node.js 20 or later. The files under `dist/` are the complete static site.
 
 Catalogue records live in `dist/data/`. Each group defines a common unit, sources and scope. Each option supplies factors only for the metrics its sources cover. Preserve the original water measure in each source record. The comparison shows volumes in litres on one Water row and labels each value with its scope. A change between unlike water definitions has no calculated difference. Record the source’s geography, year or edition, product form and system boundary when adding factors. The calculator uses 365 daily, 52 weekly or 12 monthly occurrences within the comparison year.

@@ -41,6 +41,33 @@ function formula({ choice, group, before, after, value }, metricKey) {
   return calculation + ' = ' + raw(value) + ' ' + unit;
 }
 
+function showGenericBasis(section, group, item, key) {
+  const evidence = item?.genericEvidence;
+  const metricKey = metricForOption(item, key);
+  if (!evidence || !metricKey) return;
+  const unit = metrics[metricKey].unit + ' per ' + group.singular;
+  if (evidence.method === 'representative') {
+    section.append(el('p', 'measure-dialog-scope', item.label + ' uses ' + evidence.contributors[0].label + ' as its reference.'));
+    return;
+  }
+  const sorted = [...evidence.contributors].sort((a, b) => a.values[metricKey] - b.values[metricKey]);
+  const mid = Math.floor(sorted.length / 2);
+  const middle = sorted.length % 2 ? raw(sorted[mid].values[metricKey]) :
+    '(' + raw(sorted[mid - 1].values[metricKey]) + ' + ' + raw(sorted[mid].values[metricKey]) + ') ÷ 2';
+  section.append(el('p', 'measure-dialog-scope', item.label + ' uses the median of ' + sorted.length +
+    ' source values. The middle ' + (sorted.length % 2 ? 'value is ' : 'pair gives ') + middle + ' ' + unit + '.'));
+  const details = el('details', 'measure-dialog-scope');
+  details.append(el('summary', '', 'Source values for ' + item.label), el('p', '', evidence.selection));
+  const list = el('ol', 'source-values');
+  for (const member of sorted) {
+    const name = member.id ? member.label + ' (' + member.id + ')' : member.label;
+    const row = el('li', '', name + ' · ' + raw(member.values[metricKey]) + ' ' + unit);
+    list.append(row);
+  }
+  details.append(list);
+  section.append(details);
+}
+
 function renderEntry(entry, key) {
   const { letter, title, choice, group, before, after, afterGroup, value } = entry;
   const section = el('section', 'measure-dialog-entry');
@@ -52,6 +79,8 @@ function renderEntry(entry, key) {
     const label = choice.kind === 'footprint' ? 'Annual footprint' : 'Annual change';
     section.append(el('p', 'measure-dialog-result', label + ' · ' + formatEstimate(value, key, choice.kind)));
     section.append(el('p', 'measure-dialog-formula', formula(entry, metricKey)));
+    showGenericBasis(section, group, before, key);
+    if (after && after !== before) showGenericBasis(section, afterGroup, after, key);
     if (after) section.append(el('p', 'measure-dialog-scope', 'The change is the original factor minus the replacement factor. A negative result means an increase.'));
     if (choice.kind === 'skip') section.append(el('p', 'measure-dialog-scope', 'Skipping assumes no replacement activity or purchase.'));
     if (key === 'water') section.append(el('p', 'measure-dialog-scope', metrics[metricKey].label + '. ' + metrics[metricKey].note));

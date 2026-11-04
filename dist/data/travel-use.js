@@ -384,6 +384,15 @@ export const travelUseGroups = [
     ],
     "options": [
       {
+        "id": "dual-flush-mix",
+        "label": "Dual-flush toilet",
+        "generic": true,
+        "genericHint": "Four half flushes per full flush.",
+        "values": { "tapWater": (4 * 3 + 4.5) / 5 },
+        "defaultUsage": { "amount": 1, "period": "daily", "times": 5, "description": "Assumes five flushes per day." },
+        "note": "The Australian WELS rating assumes four half flushes and one full flush. For the 4.5/3 L toilet, (4 × 3 L + 4.5 L) ÷ 5 = 3.3 L per flush."
+      },
+      {
         "id": "modern-half",
         "label": "Dual-flush example · half flush · 3 L",
         "values": {
