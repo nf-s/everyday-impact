@@ -9,11 +9,13 @@ export const metrics = {
   smogFormation: { label: 'Smog formation', unit: 'g NMVOC eq', note: 'AGRIBALYSE estimates the potential for emissions to form ground-level ozone. The calculator expresses this in grams of non-methane volatile organic compound equivalent.' },
   marineEutrophication: { label: 'Marine nutrient pollution', unit: 'g N eq', note: 'AGRIBALYSE models the potential for nutrient releases to enrich coastal and marine waters. The calculator converts kilograms of nitrogen equivalent to grams.' },
   fossilResources: { label: 'Fossil resource use', unit: 'MJ', note: 'AGRIBALYSE estimates the depletion of fossil energy resources across the product life cycle, in megajoules. The electricity row covers electricity used within its source’s operating boundary.' },
-  mineralResources: { label: 'Mineral and metal resource use', unit: 'mg Sb eq', note: 'AGRIBALYSE weights the depletion of minerals and metals against the depletion of antimony (Sb). The calculator expresses that impact in milligrams of antimony equivalent.' },
+  mineralResources: { label: 'Mineral and metal resource use', unit: 'mg Sb eq', note: 'The depletion of minerals and metals is expressed in milligrams of antimony equivalent. Details gives the study and its scope.' },
   consumedWater: { label: 'Supply-chain freshwater consumption', unit: 'L', note: 'Absolute freshwater consumption reported for the US beef supply chain.' },
   eutrophication: { label: 'Nutrient pollution', unit: 'g PO₄e', note: 'Nutrient emissions expressed in grams of phosphate equivalent. They can drive excessive growth of algae in waterways.' },
   energy: { label: 'Electricity', unit: 'kWh', note: 'Electricity within the operating boundary reported by the source.' },
   coolingWater: { label: 'Data-centre cooling water', unit: 'L', note: 'Water consumed on site to cool the serving infrastructure. Water used to generate electricity is outside this measure.' },
+  inferenceWater: { label: 'Inference life-cycle water', unit: 'L', note: 'Mistral reports water consumption potential for serving a response, including upstream impacts.' },
+  unspecifiedWater: { label: 'Water · scope undisclosed', unit: 'L', note: 'The provider reports a water volume without specifying which uses it covers.' },
   tapWater: { label: 'Household tap water', unit: 'L', note: 'Water delivered to a household fixture or appliance.' }
 };
 
@@ -36,7 +38,7 @@ export const comparisonMetrics = {
   mineralResources: metrics.mineralResources
 };
 
-const waterMetrics = ['freshwater', 'consumedWater', 'dietWater', 'coolingWater', 'tapWater'];
+const waterMetrics = ['freshwater', 'consumedWater', 'dietWater', 'coolingWater', 'inferenceWater', 'unspecifiedWater', 'tapWater'];
 
 export function metricForOption(option, displayKey) {
   if (!option?.values || !Object.hasOwn(comparisonMetrics, displayKey)) return null;
@@ -82,10 +84,10 @@ export function estimateChoice(before, after, amount, period, times, displayKey)
   return Number.isFinite(result) ? result : null;
 }
 
-export function formatEstimate(value, key, kind) {
-  const unit = comparisonMetrics[key].unit;
-  if (kind === 'footprint' || value === 0) return number(value) + ' ' + unit;
-  return number(Math.abs(value)) + ' ' + unit + (value > 0 ? ' lower' : ' higher');
+export function formatEstimate(value, key, kind, unit = comparisonMetrics[key].unit) {
+  const scaled = unit === 'Wh' ? value * 1000 : value;
+  if (kind === 'footprint' || value === 0) return number(scaled) + ' ' + unit;
+  return number(Math.abs(scaled)) + ' ' + unit + (value > 0 ? ' lower' : ' higher');
 }
 
 export function displayImpact(value, key) {

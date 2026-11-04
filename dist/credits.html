@@ -74,6 +74,32 @@
     </section>
 
     <section class="record">
+      <h2>ChatGPT and Le Chat</h2>
+      <p>Sam Altman reported two approximate ChatGPT averages in <a href="https://blog.samaltman.com/the-gentle-singularity"><cite>The Gentle Singularity</cite></a> (June 2025). We converted Wh to kWh and assumed US liquid gallons to convert water to litres. The article gives no measurement method or water boundary.</p>
+      <p><a href="https://mistral.ai/news/our-contribution-to-a-global-environmental-standard-for-ai/">Mistral AI’s July 2025 life-cycle study</a>, conducted with Carbone 4 and ADEME, reports three marginal impacts for a 400-token Le Chat response. We converted grams of CO₂e to kilograms and millilitres of water to litres. Mineral depletion retains the published unit. The original articles and illustrations remain with their publishers.</p>
+    </section>
+
+    <section class="record" id="ai-tasks">
+      <h2>AI text, image and video tasks</h2>
+      <p>Alexandra Sasha Luccioni, Yacine Jernite and Emma Strubell, <a href="https://arxiv.org/html/2311.16863v3#S4.T2"><cite>Power Hungry Processing</cite>, corrected version, Table 2</a>. The adapted task subset is available under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. We selected task means and standard deviations and divided the means by 1,000 for one inference.</p>
+      <p>Julien Delavande, Regis Pierrard and Sasha Luccioni, <a href="https://arxiv.org/html/2509.19222v1#S5.T4"><cite>Video Killed the Energy Budget</cite> (2025), Tables 2 and 4</a>. The video subset is adapted under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. We selected four clip configurations, summed the three reported component means for each and converted Wh to kWh.</p>
+      <p>Felipe Oviedo, Fiodar Kazhamiaka, Esha Choukse, Allen Kim, Amy Luers, Melanie Nakagawa, Ricardo Bianchini and Juan M. Lavista Ferres, <a href="https://arxiv.org/abs/2509.20241v2"><cite>Energy Use of AI Inference, Efficiency Pathways, and Test-Time Scaling</cite> (2026), Table 1</a>. We selected the simulated DeepSeek-R1 long-query median and interquartile range, and converted the median to kWh. The adapted reasoning subset is available under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.</p>
+      <p><a href="data/ai-tasks.js" download>Download the adapted task, video and reasoning records</a>. Each subset retains its source and licence.</p>
+    </section>
+
+    <section class="record" id="ai-development">
+      <h2>AI coding and web-app development</h2>
+      <p>Jae-Won Chung and coauthors, <cite>The ML.ENERGY Benchmark</cite> (2025), <a href="https://huggingface.co/datasets/ml-energy/benchmark-v3/blob/f4db020a045a92cc212199f889e57d55f9fa6391/README.md">v3 dataset</a>, <a href="notices/mlenergy-Apache-2.0.txt">Apache License 2.0</a>. We selected two Qwen3-Coder configurations from <a href="https://github.com/ml-energy/leaderboard/tree/2bdd0070186956688e1f842dc28077980fe64013/public/data/models">the September 2026 leaderboard snapshot</a> and converted joules per generated token to kWh.</p>
+      <p>The web-app scenarios apply these GPU measurements to AI-authored budgets for planning, implementation, tests and revisions. The benchmark measured code completion. The budgets and their allocation to development stages are assumptions made for this calculator.</p>
+      <p>Arihant Tripathy, Ch Pavan Harshit and Karthik Vaidhyanathan, <a href="https://arxiv.org/html/2512.09543v2#S5.T1"><cite>SWEnergy</cite>, Table 1</a>. The bug-fix attempt uses one reported AutoCodeRover result converted from kJ to kWh, with the study’s corresponding success rate. The paper and its tables remain with their rights holders.</p>
+    </section>
+
+    <section class="record">
+      <h2>Everyday electricity comparisons</h2>
+      <p>The calculator supplies the assumed input watts and run times for the bulb, kettle, microwave and laptop examples. Energy is input power multiplied by time. The <a href="https://www.eia.gov/energyexplained/electricity/measuring-electricity.php">US Energy Information Administration’s guide to measuring electricity</a> explains the units.</p>
+    </section>
+
+    <section class="record">
       <h2>Cotton T-shirt</h2>
       <p>Gerald Feichtinger, Andrea Katharina Scherer and Wolfgang Posch (2026), <a href="https://doi.org/10.1007/s11367-026-02630-3"><cite>Reducing the environmental footprint of cotton T-shirt production through automation and reshoring</cite></a>, scenario ESM1 in the supplementary results. © The Author(s) 2026. <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. We use the published climate result for producing and distributing a 200 g T-shirt and summarise the scenario in our own words.</p>
     </section>

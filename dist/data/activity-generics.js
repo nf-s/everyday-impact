@@ -229,7 +229,7 @@ export function withActivityGenerics(groups) {
       ...(medians[group.id] || []).map(definition => derivedOption(group, definition, 'median')),
       ...(examples[group.id] || []).map(definition => derivedOption(group, definition, 'representative'))
     ].filter(Boolean);
-    const singletonGroups = ['apparel', 'ai-request', 'return-flight'];
+    const singletonGroups = ['apparel', 'return-flight'];
     const ids = promoted[group.id] || (singletonGroups.includes(group.id) && group.options.length === 1 ? [group.options[0].id] : []);
     if (!added.length && !ids.length) return group;
     const promotedOptions = ids.flatMap(id => {

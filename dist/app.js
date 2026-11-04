@@ -3,7 +3,7 @@ import { labourEvidence } from './data/goods.js';
 import { metrics, comparisonMetrics, periods, validAmount, metricForOption, estimateChoice, formatEstimate, raw } from './model.js';
 import { defaultUsage } from './defaults.js';
 import { activityPicker } from './picker.js';
-import { el, sourceLinks } from './dom.js';
+import { el, sourceLinks, evidenceBadge } from './dom.js';
 import { showMeasureDetails } from './measure-dialog.js';
 
 const byId = new Map(groups.map(group => [group.id, group]));
@@ -15,6 +15,18 @@ const presets = [
   { id: 'ai-beef', label: 'AI prompts and beef', mode: 'footprints', choices: [
     defaultChoice(byId.get('ai-request'), byId.get('ai-request').options[0]),
     defaultChoice(byId.get('us-beef'), byId.get('us-beef').options[0])] },
+  { id: 'web-app-kettle', label: 'Build a web app and run a kettle', mode: 'footprints', choices: [
+    pick('ai-web-app-development', 'prototype-qwen3-coder-480b-fp8-b200', null),
+    pick('everyday-electricity', 'kettle-three-minutes', null)] },
+  { id: 'bug-fix-microwave', label: 'Attempt a bug fix and use a microwave', mode: 'footprints', choices: [
+    pick('ai-coding-agent-bug-fix', 'autocoderover-qwen3-1-7b-attempt', null),
+    pick('everyday-electricity', 'microwave-three-minutes', null)] },
+  { id: 'image-light', label: 'Generate an image and light an LED bulb', mode: 'footprints', choices: [
+    pick('ai-image-generation', 'luccioni-2024-image-generation', null),
+    pick('everyday-electricity', 'led-hour', null)] },
+  { id: 'video-laptop', label: 'Generate a video clip and use a laptop', mode: 'footprints', choices: [
+    pick('ai-video-generation', 'video-2025-cogvideox-5b', null),
+    pick('everyday-electricity', 'laptop-hour', null)] },
   { id: 'flight-diet', label: 'Flight and diet', mode: 'changes', choices: [
     pick('return-flight', 'paris-new-york-return', null), pick('uk-diets', 'low-meat', 'vegan', 1, 'daily')] },
   { id: 'food-water', label: 'Beef and tofu', mode: 'footprints', choices: [
@@ -117,10 +129,13 @@ const itemEntries = groups.flatMap(group => group.options.map(item => ({
   label: itemName(group, item), groupLabel: group.label,
   categoryLabel: titleCase(group.category), categoryPath: item.categoryPath,
   generic: item.generic === true, genericHint: genericHint(item),
+  evidenceLabel: item.evidenceLabel,
   aliases: [
     item.sourceCode, item.sourceName, item.sourceFrenchName, item.genericHint, group.category, group.id, item.id,
     ...foodSynonyms.filter(([term]) => group.category === 'food' && item.label.toLowerCase().includes(term)).map(([, aliases]) => aliases),
-    group.id === 'ai-request' ? 'LLM chatbot question' : ''
+    item.categoryPath?.includes('Chat responses') ? 'LLM chatbot prompt question' : '',
+    group.id === 'ai-web-app-development' ? 'coding agent website create develop programming' : '',
+    group.id === 'ai-summarisation' ? 'summarize document summary summarization' : ''
   ].join(' '),
   qualityLabel: item.qualityWarning ? (item.dqr > 4 ? 'Low data quality' : 'Data quality caution') : '',
   replacementGroup: replacementGroup(group, item),
@@ -204,6 +219,8 @@ function renderCard(index, keepOpen = false) {
   const { group, before, after } = selections(choice);
   const description = el('p', 'choice-context', usageText(choice));
   picker.append(description);
+  const evidenceLabels = new Set([before.evidenceLabel, after?.evidenceLabel].filter(Boolean));
+  for (const label of evidenceLabels) picker.append(evidenceBadge(label));
   for (const item of [before, after]) {
     if (item?.genericHint) picker.append(el('p', 'choice-context', item.genericHint));
     if (item?.qualityWarning) picker.append(el('p', 'choice-context', item.label + ' · ' + item.qualityWarning));
@@ -245,7 +262,7 @@ function refreshChoice(index, focusField) {
   renderResults();
 }
 
-function resultCell(row, entry, key, largest) {
+function resultCell(row, entry, key, largest, unit) {
   const cell = row.insertCell();
   const { choice, before, value } = entry;
   if (value === null) {
@@ -255,7 +272,7 @@ function resultCell(row, entry, key, largest) {
     return;
   }
 
-  cell.append(el('span', 'metric-value', formatEstimate(value, key, choice.kind)));
+  cell.append(el('span', 'metric-value', formatEstimate(value, key, choice.kind, unit)));
   const bar = el('div', 'metric-bar');
   bar.setAttribute('aria-hidden', 'true');
   const fill = el('div', value === 0 ? 'metric-fill' : 'metric-fill has-value');
@@ -265,6 +282,8 @@ function resultCell(row, entry, key, largest) {
   if (key === 'water') {
     cell.append(el('small', 'metric-detail water-scope', metrics[metricForOption(before, key)].label));
   }
+  const energyScope = before.energyScope || entry.group.energyScope;
+  if (key === 'energy' && energyScope) cell.append(el('small', 'metric-detail', energyScope));
 }
 
 function renderResults() {
@@ -304,21 +323,34 @@ function renderResults() {
     const hasMissing = measures.some(entry => entry.value === null);
     if (!measures.length || (sharedOnly && hasMissing)) continue;
     if (hasMissing) missing = true;
+    const largest = measures.reduce((max, entry) => Math.max(max, Math.abs(entry.value ?? 0)), 0);
+    const unit = key === 'energy' && largest > 0 && largest < 1 ? 'Wh' : metric.unit;
     const row = body.insertRow();
     const label = el('th', 'measure-text');
     label.scope = 'row';
-    const details = el('button', 'measure-details', 'Details');
+    const details = el('button', 'measure-details');
     details.type = 'button';
+    const eye = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    eye.setAttribute('viewBox', '0 0 24 24');
+    eye.setAttribute('aria-hidden', 'true');
+    eye.setAttribute('focusable', 'false');
+    const outline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    outline.setAttribute('d', 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z');
+    const pupil = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    pupil.setAttribute('cx', '12');
+    pupil.setAttribute('cy', '12');
+    pupil.setAttribute('r', '3');
+    eye.append(outline, pupil);
+    details.append(eye, el('span', 'measure-details-text', 'Details'));
     details.setAttribute('aria-label', metric.label + ' calculation details');
     details.setAttribute('aria-haspopup', 'dialog');
-    details.addEventListener('click', () => showMeasureDetails(key, measures, details));
+    details.addEventListener('click', () => showMeasureDetails(key, measures, details, unit));
     const controls = el('div', 'measure-controls');
     controls.append(el('span', 'measure-label', metric.label), details);
     label.append(controls);
     row.append(label);
-    const largest = measures.reduce((max, entry) => Math.max(max, Math.abs(entry.value ?? 0)), 0);
     for (const entry of measures) {
-      resultCell(row, entry, key, largest);
+      resultCell(row, entry, key, largest, unit);
       if (key === 'water' && entry.value !== null) waterScopes.add(metricForOption(entry.before, key));
     }
   }
@@ -427,6 +459,8 @@ function useFactor(group, item, index) {
 function factorRecord(group, item) {
   const record = el('article', 'factor');
   record.append(el('h3', '', item.label));
+  if (item.evidenceLabel) record.append(evidenceBadge(item.evidenceLabel));
+  if (item.reasoning) record.append(el('p', '', item.reasoning));
   for (const [key, value] of Object.entries(item.values)) {
     record.append(el('p', '', metrics[key].label + ' · ' + raw(value) + ' ' + metrics[key].unit));
   }
@@ -505,5 +539,6 @@ function navigate() {
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', navigate);
-loadPreset('ai-beef');
+const example = new URLSearchParams(location.search).get('example');
+loadPreset(presets.some(preset => preset.id === example) ? example : 'ai-beef');
 navigate();

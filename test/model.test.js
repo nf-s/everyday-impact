@@ -49,6 +49,7 @@ test('table and calculation details express changes in the same units and direct
   assert.equal(formatEstimate(-1.5, 'carbon', 'swap'), '1.5 kg CO₂e higher');
   assert.equal(formatEstimate(1.5, 'carbon', 'skip'), '1.5 kg CO₂e lower');
   assert.equal(formatEstimate(0, 'energy', 'swap'), '0 kWh');
+  assert.equal(formatEstimate(-0.002907, 'energy', 'swap', 'Wh'), '2.91 Wh higher');
 });
 
 test('a missing factor stays unknown while a skipped item has a zero replacement footprint', () => {
@@ -98,6 +99,32 @@ test('water swaps require the same source measure and missing factors stay unkno
   assert.equal(metricForOption({ values: { coolingWater: NaN } }, 'water'), null);
   assert.equal(metricForOption({ values: { coolingWater: 1, tapWater: 2 } }, 'water'), null);
   assert.equal(metricForOption(ai, 'unknown'), null);
+});
+
+test('chat reports retain their original units, evidence and distinct water boundaries', () => {
+  const gemini = option('ai-request', 'gemini-text-2025');
+  const leChat = option('ai-chat-reports', 'mistral-le-chat-400');
+  const chatGPT = option('ai-chat-reports', 'chatgpt-query-2025');
+  assert.equal(leChat.values.carbon, 0.00114);
+  assert.equal(leChat.values.mineralResources, 0.16);
+  assert.equal(estimateChoice(leChat, null, 1, 'once', 1, 'water'), 0.045);
+  assert.equal(estimateChoice(leChat, null, 1, 'once', 1, 'energy'), null);
+  assert.equal(chatGPT.values.energy, 0.00034);
+  assert.equal(chatGPT.evidenceLabel, 'Limited disclosure');
+  assert.ok(Math.abs(estimateChoice(chatGPT, null, 1, 'once', 1, 'water') - 0.00032176) < 0.00000001);
+  assert.equal(estimateChoice(chatGPT, leChat, 1, 'once', 1, 'water'), null);
+  assert.equal(estimateChoice(leChat, gemini, 1, 'once', 1, 'water'), null);
+});
+
+test('everyday electricity scenarios use electrical input and minutes per use', () => {
+  const group = groups.find(entry => entry.id === 'everyday-electricity');
+  for (const [id, kWh] of [['led-hour', 0.01], ['kettle-three-minutes', 0.1], ['microwave-three-minutes', 0.06], ['laptop-hour', 0.035]]) {
+    const item = option(group.id, id);
+    const usage = defaultUsage(group, item);
+    assert.equal(item.evidenceLabel, 'Modelled scenario');
+    assert.ok(Math.abs(estimateChoice(item, null, usage.amount, usage.period, usage.times, 'energy') - kWh) < 1e-12);
+    assert.equal(estimateChoice(item, null, 1, 'once', 1, 'carbon'), null);
+  }
 });
 
 test('comparison estimates apply occurrence counts once and reject invalid inputs', () => {

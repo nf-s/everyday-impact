@@ -1,4 +1,4 @@
-import { el } from './dom.js';
+import { el, evidenceBadge } from './dom.js';
 
 const pageSize = 12;
 
@@ -239,6 +239,7 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
       if (row.type !== 'item') option.setAttribute('aria-label', row.label + ', browse, ' + row.detail);
       option.append(el('strong', '', row.label));
       if (row.detail) option.append(el('small', '', row.detail));
+      if (row.entry?.evidenceLabel) option.append(evidenceBadge(row.entry.evidenceLabel));
       if (row.type !== 'item') option.append(el('span', 'picker-chevron', '›'));
       option.addEventListener('mousedown', event => event.preventDefault());
       option.addEventListener('click', () => activate(row));

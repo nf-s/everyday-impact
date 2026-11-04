@@ -1,5 +1,5 @@
 import { comparisonMetrics, metrics, periods, metricForOption, validAmount, formatEstimate, raw } from './model.js';
-import { el, sourceLinks } from './dom.js';
+import { el, sourceLinks, evidenceBadge } from './dom.js';
 
 let dialog;
 let opener;
@@ -68,7 +68,7 @@ function showGenericBasis(section, group, item, key) {
   section.append(details);
 }
 
-function renderEntry(entry, key) {
+function renderEntry(entry, key, unit) {
   const { letter, title, choice, group, before, after, afterGroup, value } = entry;
   const section = el('section', 'measure-dialog-entry');
   section.append(el('h3', '', 'Choice ' + letter + ' · ' + title));
@@ -77,7 +77,7 @@ function renderEntry(entry, key) {
   } else {
     const metricKey = metricForOption(before, key);
     const label = choice.kind === 'footprint' ? 'Annual footprint' : 'Annual change';
-    section.append(el('p', 'measure-dialog-result', label + ' · ' + formatEstimate(value, key, choice.kind)));
+    section.append(el('p', 'measure-dialog-result', label + ' · ' + formatEstimate(value, key, choice.kind, unit)));
     section.append(el('p', 'measure-dialog-formula', formula(entry, metricKey)));
     showGenericBasis(section, group, before, key);
     if (after && after !== before) showGenericBasis(section, afterGroup, after, key);
@@ -86,6 +86,14 @@ function renderEntry(entry, key) {
     if (key === 'water') section.append(el('p', 'measure-dialog-scope', metrics[metricKey].label + '. ' + metrics[metricKey].note));
   }
 
+  for (const item of new Set([before, after])) {
+    if (!item?.evidenceLabel || !metricForOption(item, key)) continue;
+    const evidence = el('div', 'measure-evidence');
+    if (after) evidence.append(el('strong', '', item.label + ' '));
+    evidence.append(evidenceBadge(item.evidenceLabel));
+    if (item.reasoning) evidence.append(el('p', '', item.reasoning));
+    section.append(evidence);
+  }
   const context = el('details', 'measure-dialog-scope');
   context.append(el('summary', '', 'Source context and assumptions'), el('p', '', group.sourceNote));
   for (const item of [before, after]) {
@@ -106,7 +114,7 @@ function renderEntry(entry, key) {
   return section;
 }
 
-export function showMeasureDetails(key, entries, trigger) {
+export function showMeasureDetails(key, entries, trigger, unit) {
   const modal = getDialog();
   opener = trigger;
   const header = el('div', 'dialog-header');
@@ -119,7 +127,7 @@ export function showMeasureDetails(key, entries, trigger) {
   header.append(title, close);
   const intro = el('p', 'measure-dialog-intro', metric.note);
   intro.id = 'measure-dialog-description';
-  modal.replaceChildren(header, intro, ...entries.map(entry => renderEntry(entry, key)));
+  modal.replaceChildren(header, intro, ...entries.map(entry => renderEntry(entry, key, unit)));
   modal.showModal();
   modal.scrollTop = 0;
   close.focus({ preventScroll: true });

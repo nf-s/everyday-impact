@@ -307,7 +307,11 @@ export const travelUseGroups = [
     "options": [
       {
         "id": "gemini-text-2025",
+        "energyScope": "Serving infrastructure and facility overhead",
         "label": "Gemini Apps · median text prompt · May 2025",
+        "categoryPath": ["Digital", "AI", "Chat responses"],
+        "evidenceLabel": "Provider study",
+        "reasoning": "Google reports median values of 0.24 Wh, 0.03 g CO₂e and 0.26 mL of cooling water for a Gemini Apps text prompt in May 2025. Dividing each by 1,000 gives kWh, kg CO₂e and litres per prompt.",
         "values": {
           "carbon": 0.00003,
           "energy": 0.00024,

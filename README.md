@@ -6,11 +6,17 @@ Click a choice to browse categories and subcategories, or type to search across 
 
 General choices appear first. Open **Specific items** for individual models and food variants, or search for them directly. Details identifies the reference item or shows how the median was calculated for that measure. For example, the clothes dryer estimate uses full loads from 8 kg registrations in the Australian GEMS register.
 
+Try [building a web app and running a kettle](https://everyday-impact.pages.dev/?example=web-app-kettle) or [generating an image and lighting a bulb](https://everyday-impact.pages.dev/?example=image-light). Under Digital → AI, evidence labels distinguish benchmarks, provider studies, limited disclosures, published models and AI-modelled scenarios. Open a measure’s Details link to see the unit conversion, workload assumptions and source. The web-app scenarios scale a measured code-completion GPU factor by an illustrative output-token budget.
+
 Run `npm start` with Python 3 installed, then open http://127.0.0.1:8000. Run `npm test` with Node.js 20 or later. The files under `dist/` are the complete static site.
 
 Catalogue records live in `dist/data/`. Each group defines a common unit, sources and scope. Each option supplies factors only for the metrics its sources cover. Preserve the original water measure in each source record. The comparison shows volumes in litres on one Water row and labels each value with its scope. A change between unlike water definitions has no calculated difference. Record the source’s geography, year or edition, product form and system boundary when adding factors. The calculator uses 365 daily, 52 weekly or 12 monthly occurrences within the comparison year.
 
 The catalogue includes all food records from the public AGRIBALYSE 3.2 summary, Australian grid and fuel factors, named appliance test programs and UK procurement and transport factors. The labour evidence section links company-level disclosures separately. Food records retain the publisher’s quality rating and link to the exact source row. Run `python3 scripts/build_agribalyse_foods.py` to refresh the bundled food snapshot and `python3 scripts/verify_agribalyse_foods.py` to compare every imported value with ADEME. The calculator uses local data files at runtime.
+
+## Production releases
+
+Publish completed changes to the existing public Cloudflare Pages project `everyday-impact` after testing and pushing `main`. From the clean checkout, run `wrangler pages deploy dist --project-name everyday-impact --branch main`. Verify the production calculator and its existing NFS Home launcher entry after the upload.
 
 ## Code licence
 
