@@ -1,13 +1,11 @@
-import { foodGroups } from './data/food.js';
+import { groups } from './data/catalogue.js';
 import { goodsGroups, labourEvidence } from './data/goods.js';
-import { travelUseGroups } from './data/travel-use.js';
 import { metrics, comparisonMetrics, periods, validAmount, metricForOption, estimateChoice, formatEstimate, raw } from './model.js';
 import { defaultUsage } from './defaults.js';
 import { activityPicker } from './picker.js';
 import { el, sourceLinks } from './dom.js';
 import { showMeasureDetails } from './measure-dialog.js';
 
-const groups = [...foodGroups, ...travelUseGroups, ...goodsGroups];
 const byId = new Map(groups.map(group => [group.id, group]));
 const categories = [...new Set(groups.map(group => group.category))];
 const view = id => document.getElementById(id);
@@ -30,7 +28,15 @@ const presets = [
   { id: 'ai', label: 'AI use and a return flight', mode: 'footprints', choices: [
     pick('ai-request', 'gemini-text-2025', null, 20, 'daily'), pick('return-flight', 'paris-new-york-return', null)] },
   { id: 'goods', label: 'A T-shirt and a smartphone', mode: 'footprints', choices: [
-    pick('apparel', 'cotton-tshirt', null), pick('digital-devices', 'smartphone', null)] }
+    pick('apparel', 'cotton-tshirt', null), pick('digital-devices', 'smartphone', null)] },
+  { id: 'dishwashers', label: 'Two 14-place dishwashers', mode: 'footprints', choices: [
+    pick('dishwasher-cycles', 'adw1264', null, 1, 'daily'), pick('dishwasher-cycles', 'adw1142', null, 1, 'daily')] },
+  { id: 'tomato-season', label: 'In-season and out-of-season tomatoes', mode: 'footprints', choices: [
+    pick('agb-plants', 'agb-20047_2', null, 1), pick('agb-plants', 'agb-20047_3', null, 1)] },
+  { id: 'materials', label: 'New and second-hand clothing', mode: 'footprints', choices: [
+    pick('clothing-material', 'clothing-primary', null, 0.2), pick('clothing-material', 'clothing-reused', null, 0.2)] },
+  { id: 'grids', label: 'Electricity in Tasmania and Victoria', mode: 'footprints', choices: [
+    pick('au-grid-electricity', 'tasmania', null, 10, 'daily'), pick('au-grid-electricity', 'victoria', null, 10, 'daily')] }
 ];
 
 let choices = [];
@@ -52,8 +58,9 @@ function defaultChoice(group, item) {
 function selections(choice) {
   const group = byId.get(choice.group);
   const before = group.options.find(option => option.id === choice.before);
-  const after = choice.kind === 'swap' && choice.after ? group.options.find(option => option.id === choice.after) : null;
-  return { group, before, after };
+  const afterGroup = choice.afterGroup ? byId.get(choice.afterGroup) : group;
+  const after = choice.kind === 'swap' && choice.after ? afterGroup.options.find(option => option.id === choice.after) : null;
+  return { group, before, afterGroup, after };
 }
 
 function options(select, items, value) {
@@ -73,6 +80,8 @@ function selectField(text, name, values, selected) {
 function itemName(group, item) {
   if (group.id === 'ai-request') return 'Gemini text prompt';
   if (group.id === 'uk-diets') return item.label + ' diet';
+  if (group.id === 'au-grid-electricity') return 'Grid electricity · ' + item.label;
+  if (group.id === 'au-pipeline-gas') return 'Mains gas · ' + item.label;
   return item.label;
 }
 
@@ -84,29 +93,51 @@ function choiceTitle(choice) {
   return name;
 }
 
-const searchEntries = groups.flatMap(group => group.options.map(item => ({
+const foodSynonyms = [
+  ['chick pea', 'chickpea chickpeas garbanzo beans'],
+  ['sweet pepper', 'capsicum bell pepper'],
+  ['eggplant', 'aubergine'],
+  ['rolled oats', 'porridge oatmeal']
+];
+
+const itemEntries = groups.flatMap(group => group.options.map(item => ({
   label: itemName(group, item), groupLabel: group.label,
-  aliases: [item.label, group.category, group.id, item.id, group.id === 'ai-request' ? 'LLM chatbot question' : ''].join(' '),
+  categoryLabel: titleCase(group.category), categoryPath: item.categoryPath,
+  aliases: [
+    item.sourceCode, item.sourceName, item.sourceFrenchName, group.category, group.id, item.id,
+    ...foodSynonyms.filter(([term]) => item.sourceCode && item.label.toLowerCase().includes(term)).map(([, aliases]) => aliases),
+    group.id === 'ai-request' ? 'LLM chatbot question' : ''
+  ].join(' '),
+  qualityLabel: item.qualityWarning ? (item.dqr > 4 ? 'Low data quality' : 'Data quality caution') : '',
+  replacementGroup: item.sourceCode ? 'agribalyse' : group.id,
   choice: defaultChoice(group, item)
 })));
+// The French product groups share a source, system boundary and mass denominator.
+const replacementPools = new Map();
+for (const entry of itemEntries) {
+  if (!replacementPools.has(entry.replacementGroup)) replacementPools.set(entry.replacementGroup, []);
+  replacementPools.get(entry.replacementGroup).push(entry);
+}
+const searchEntries = [...itemEntries];
 const changes = [
   ['Switch to a vegan diet', 'go vegan plant based lifestyle', 'uk-diets', 'low-meat', 'vegan'],
   ['Replace a beef meal with a vegan meal', 'swap steak dinner', 'french-meals', 'beef', 'vegan'],
   ['Skip a Paris–New York return flight', 'avoid flying air travel', 'return-flight', 'paris-new-york-return', null],
   ['Take the train instead of driving', 'commute car rail', 'surface-travel', 'petrol-car-solo', 'national-rail'],
-  ['Switch to an efficient showerhead', 'use less household water', 'shower', 'higher-9l', 'efficient-6l']
+  ['Switch to an efficient showerhead', 'use less household water', 'shower', 'higher-9l', 'efficient-6l'],
+  ['Buy a garment second-hand', 'op shop thrift used clothing clothes', 'clothing-material', 'clothing-primary', 'clothing-reused'],
+  ['Switch between two 8 kg dryers', 'replace tumble dryer vented condenser laundry', 'dryer-loads', 'acd0929', 'acd0915']
 ];
 for (const [label, aliases, groupId, beforeId, after] of changes) {
   const group = byId.get(groupId);
   const item = group.options.find(option => option.id === beforeId);
-  searchEntries.push({ label, aliases, groupLabel: 'Lifestyle changes', choice: {
+  searchEntries.push({ label, aliases, categoryLabel: 'Lifestyle changes', groupLabel: titleCase(group.category), choice: {
     ...defaultChoice(group, item), kind: after ? 'swap' : 'skip', after
   } });
 }
 
 function portionUnit(group) {
   if (group.singular === 'kg') return { scale: 1000, label: 'g' };
-  if (group.singular === 'litre') return { scale: 1000, label: 'mL' };
   return { scale: 1, label: group.plural };
 }
 
@@ -156,9 +187,12 @@ function renderCard(index, keepOpen = false) {
   }
   card.append(picker);
   if (!choice) return card;
-  const { group, before } = selections(choice);
+  const { group, before, after } = selections(choice);
   const description = el('p', 'choice-context', usageText(choice));
   picker.append(description);
+  for (const item of [before, after]) {
+    if (item?.qualityWarning) picker.append(el('p', 'choice-context', item.label + ' · ' + item.qualityWarning));
+  }
   const advanced = el('details', 'advanced');
   advanced.open = keepOpen;
   advanced.append(el('summary', '', 'Advanced'));
@@ -169,9 +203,18 @@ function renderCard(index, keepOpen = false) {
     Object.entries(periods).map(([key, item]) => [key, item.label]), choice.period));
   fields.append(pair);
   if (choice.period !== 'once') fields.append(numericField('Times per ' + { daily: 'day', weekly: 'week', monthly: 'month' }[choice.period], 'times', choice.times));
-  const alternatives = [['footprint', 'Footprint of this activity'], ['skip', 'Change from skipping this activity'],
-    ...group.options.filter(item => item.id !== before.id).map(item => [item.id, 'Replace with ' + item.label])];
-  fields.append(selectField('Estimate', 'alternative', alternatives, choice.kind === 'swap' ? choice.after : choice.kind));
+  const alternatives = [['footprint', 'Footprint of this activity'], ['skip', 'Change from skipping this activity']];
+  const replacements = replacementPools.get(before.sourceCode ? 'agribalyse' : group.id);
+  if (replacements.length > 1) alternatives.push(['swap', 'Change from replacing this activity']);
+  fields.append(selectField('Estimate', 'alternative', alternatives, choice.kind));
+  if (choice.kind === 'swap') {
+    fields.append(activityPicker(replacements, after ? itemName(byId.get(choice.afterGroup || group.id), after) : '', letter + '-replacement', entry => {
+      choice.after = entry.choice.before;
+      choice.afterGroup = entry.choice.group;
+      setCustom();
+      refreshChoice(index, 'replacement');
+    }, { label: 'Replacement for choice ' + letter }));
+  }
   advanced.append(fields);
   card.append(advanced);
   return card;
@@ -181,8 +224,9 @@ function refreshChoice(index, focusField) {
   const existing = view('choices').children[index];
   const card = renderCard(index, existing.querySelector('details')?.open);
   existing.replaceWith(card);
-  const target = focusField === 'picker' ? '[role="combobox"]' : '[data-field="' + focusField + '"]';
-  card.querySelector(target)?.focus({ preventScroll: true });
+  const focusId = { picker: 'activity-' + choiceLetter(index), replacement: 'activity-' + choiceLetter(index) + '-replacement' };
+  const target = focusId[focusField] ? view(focusId[focusField]) : card.querySelector('[data-field="' + focusField + '"]');
+  target?.focus({ preventScroll: true });
   renderResults();
 }
 
@@ -191,7 +235,8 @@ function resultCell(row, entry, key, largest) {
   const { choice, before, value } = entry;
   if (value === null) {
     const valid = validAmount(choice.amount) && validAmount(choice.times);
-    cell.append(el('span', 'metric-detail', valid ? 'No estimate' : 'Check quantity'));
+    const reason = choice.kind === 'swap' && !choice.after ? 'Choose a replacement' : 'No estimate';
+    cell.append(el('span', 'metric-detail', valid ? reason : 'Check quantity'));
     return;
   }
 
@@ -238,7 +283,8 @@ function renderResults() {
   for (const [key, metric] of Object.entries(comparisonMetrics)) {
     const measures = entries.map(entry => {
       const { before, after, choice } = entry;
-      return { ...entry, value: estimateChoice(before, after, choice.amount, choice.period, choice.times, key) };
+      const value = choice.kind === 'swap' && !after ? null : estimateChoice(before, after, choice.amount, choice.period, choice.times, key);
+      return { ...entry, value };
     });
     const hasMissing = measures.some(entry => entry.value === null);
     if (!measures.length || (sharedOnly && hasMissing)) continue;
@@ -344,11 +390,12 @@ view('choices').addEventListener('change', event => {
     choice.period = select.value;
     if (choice.period === 'once') choice.times = 1;
   } else if (select.dataset.field === 'alternative') {
-    choice.kind = ['skip', 'footprint'].includes(select.value) ? select.value : 'swap';
-    choice.after = choice.kind === 'swap' ? select.value : null;
+    choice.kind = select.value;
+    choice.after = null;
+    delete choice.afterGroup;
   }
   setCustom();
-  refreshChoice(index, select.dataset.field);
+  refreshChoice(index, select.dataset.field === 'alternative' && choice.kind === 'swap' ? 'replacement' : select.dataset.field);
 });
 view('shared-only').addEventListener('change', renderResults);
 options(view('examples'), [['custom', 'Custom comparison'], ...presets.map(preset => [preset.id, preset.label])], 'ai-beef');
@@ -391,13 +438,29 @@ function renderLibrary() {
   let total = 0;
   for (const group of groups) {
     if (category && category !== group.category) continue;
-    const items = group.options.filter(item => [group.category, group.label, item.label, ...Object.keys(item.values).map(key => metrics[key].label)].join(' ').toLocaleLowerCase().includes(text));
+    const items = text ? group.options.filter(item => [
+      group.category, group.label, item.label, item.sourceCode, item.sourceFrenchName, ...(item.categoryPath || []),
+      ...Object.keys(item.values).map(key => metrics[key].label)
+    ].join(' ').toLocaleLowerCase().includes(text)) : group.options;
     if (!items.length) continue;
     const details = el('details', 'library-group');
-    details.open = Boolean(text);
     details.append(el('summary', '', group.label + ' · ' + items.length));
     details.append(el('p', 'lib-intro', 'Unit · ' + group.unit), el('p', 'lib-intro', group.sourceNote), sourceLinks(group.sources));
-    for (const item of items) details.append(factorRecord(group, item));
+    const records = el('div');
+    const more = el('button', 'library-more', 'Show more');
+    more.type = 'button';
+    let shown = 0;
+    function showPage() {
+      const next = items.slice(shown, shown + 20);
+      records.append(...next.map(item => factorRecord(group, item)));
+      shown += next.length;
+      more.hidden = shown === items.length;
+      more.textContent = 'Show ' + Math.min(20, items.length - shown) + ' more';
+    }
+    details.append(records, more);
+    more.addEventListener('click', showPage);
+    details.addEventListener('toggle', () => { if (details.open && !shown) showPage(); });
+    details.open = Boolean(text);
     list.append(details);
     total += items.length;
   }

@@ -62,6 +62,20 @@ const flightDistances = {
 };
 
 const groupDefaults = {
+  'dishwasher-cycles': usage(1, 'daily', 1, 'Assumes one dishwasher cycle on the registered program each day.'),
+  'washer-cycles': usage(1, 'weekly', 4, 'Assumes four full cotton washes at 40 °C each week.'),
+  'dryer-loads': usage(1, 'weekly', 2, 'Assumes two full dryer loads each week.'),
+  refrigeration: usage(1, 'daily', 1, 'Assumes the appliance runs continuously throughout the year.'),
+  'tv-viewing': usage(2, 'daily', 1, 'Assumes two hours of viewing each day.'),
+  packaging: usage(0.05, 'weekly', 1, 'Assumes 50 g of packaging material purchased each week.'),
+  'clothing-material': usage(0.2, 'once', 1, 'Assumes one 200 g garment purchased during the year.'),
+  'au-grid-electricity': usage(10, 'daily', 1, 'Assumes 10 kWh of electricity drawn from this grid each day.'),
+  'au-pipeline-gas': usage(20, 'daily', 1, 'Assumes 20 MJ of metered gas used each day.'),
+  'au-stationary-liquid-fuels': usage(1, 'weekly', 1, 'Assumes one litre of fuel burned each week.'),
+  'au-road-fuels': usage(10, 'weekly', 1, 'Assumes 10 litres of vehicle fuel burned each week.'),
+  'uk-motorcycles': usage(10, 'weekly', 10, 'Assumes a 10 km solo ride, ten times a week.'),
+  'uk-taxi-travel': usage(10, 'weekly', 2, 'Assumes one passenger making two 10 km taxi journeys each week.'),
+  'uk-ferry-travel': usage(50, 'monthly', 2, 'Assumes one passenger making two 50 km ferry crossings each month.'),
   'us-beef': usage(0.15, 'weekly', 2, 'Assumes two 150 g servings of boneless beef each week.'),
   'french-meals': usage(1, 'weekly', 2, 'Assumes one complete modelled meal, twice a week.'),
   'uk-diets': usage(1, 'daily', 1, 'Assumes one person following this 2,000 kcal daily diet throughout the year.'),
@@ -77,6 +91,7 @@ const groupDefaults = {
 export function defaultUsage(group, item) {
   if (group.id === 'food-products' && Object.hasOwn(foodProducts, item.id)) return { ...foodProducts[item.id] };
   if (group.id === 'food-liquids' && Object.hasOwn(foodLiquids, item.id)) return { ...foodLiquids[item.id] };
+  if (item.defaultUsage) return { ...item.defaultUsage };
   if (group.id === 'flights' && Object.hasOwn(flightDistances, item.id)) {
     const distance = flightDistances[item.id];
     return usage(distance, 'once', 1, 'Assumes one ' + distance.toLocaleString('en-AU') + ' km one-way flight for one passenger.');

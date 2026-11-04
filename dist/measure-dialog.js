@@ -18,6 +18,7 @@ function getDialog() {
 }
 
 function missingReason({ choice, before, after }, key) {
+  if (choice.kind === 'swap' && !after) return 'Choose a replacement in Advanced to calculate the change.';
   if (!validAmount(choice.amount) || !validAmount(choice.times)) {
     return 'Enter a positive quantity and frequency in Advanced to calculate this estimate.';
   }
@@ -41,7 +42,7 @@ function formula({ choice, group, before, after, value }, metricKey) {
 }
 
 function renderEntry(entry, key) {
-  const { letter, title, choice, group, before, after, value } = entry;
+  const { letter, title, choice, group, before, after, afterGroup, value } = entry;
   const section = el('section', 'measure-dialog-entry');
   section.append(el('h3', '', 'Choice ' + letter + ' · ' + title));
   if (value === null) {
@@ -62,6 +63,10 @@ function renderEntry(entry, key) {
     if (item?.note) context.append(el('p', '', item.label + ' · ' + item.note));
   }
   const sources = [...(before.sources || []), ...(after?.sources || []), ...group.sources];
+  if (after && afterGroup !== group) {
+    if (afterGroup.sourceNote !== group.sourceNote) context.append(el('p', '', afterGroup.sourceNote));
+    sources.push(...afterGroup.sources);
+  }
   section.append(context, sourceLinks(sources.filter(source => !source.measure || source.measure === key)));
   if (group.id === 'apparel') {
     const labour = el('a', '', 'Labour evidence for Uniqlo');

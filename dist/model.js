@@ -5,6 +5,11 @@ export const metrics = {
   agribalyseLand: { label: 'Land use (soil quality)', unit: 'Pt', note: 'AGRIBALYSE models effects on soil quality and reports a score in points. It can assign a negative score. This indicator does not measure occupied area.' },
   freshwaterEutrophication: { label: 'Freshwater nutrient pollution', unit: 'g P eq', note: 'AGRIBALYSE reports freshwater eutrophication as a mass of phosphorus equivalent. The calculator converts the published kg to grams.' },
   waterScarcity: { label: 'Water scarcity impact', unit: 'm³ deprivation eq', note: 'AGRIBALYSE weights water use by local scarcity. This indicator is kept separate from the physical volumes in the Water row.' },
+  agribalyseAcidification: { label: 'Acidification', unit: 'mol H⁺ eq', note: 'AGRIBALYSE models how emissions can acidify soils and fresh water. The unit expresses their effect in equivalent moles of hydrogen ions.' },
+  smogFormation: { label: 'Smog formation', unit: 'g NMVOC eq', note: 'AGRIBALYSE estimates the potential for emissions to form ground-level ozone. The calculator expresses this in grams of non-methane volatile organic compound equivalent.' },
+  marineEutrophication: { label: 'Marine nutrient pollution', unit: 'g N eq', note: 'AGRIBALYSE models the potential for nutrient releases to enrich coastal and marine waters. The calculator converts kilograms of nitrogen equivalent to grams.' },
+  fossilResources: { label: 'Fossil resource use', unit: 'MJ', note: 'AGRIBALYSE estimates the depletion of fossil energy resources across the product life cycle, in megajoules. The electricity row covers electricity used within its source’s operating boundary.' },
+  mineralResources: { label: 'Mineral and metal resource use', unit: 'mg Sb eq', note: 'AGRIBALYSE weights the depletion of minerals and metals against the depletion of antimony (Sb). The calculator expresses that impact in milligrams of antimony equivalent.' },
   consumedWater: { label: 'Supply-chain freshwater consumption', unit: 'L', note: 'Absolute freshwater consumption reported for the US beef supply chain.' },
   eutrophication: { label: 'Nutrient pollution', unit: 'g PO₄e', note: 'Nutrient emissions expressed in grams of phosphate equivalent. They can drive excessive growth of algae in waterways.' },
   energy: { label: 'Electricity', unit: 'kWh', note: 'Electricity within the operating boundary reported by the source.' },
@@ -22,8 +27,13 @@ export const comparisonMetrics = {
   agribalyseLand: metrics.agribalyseLand,
   waterScarcity: metrics.waterScarcity,
   freshwaterEutrophication: metrics.freshwaterEutrophication,
+  marineEutrophication: metrics.marineEutrophication,
   eutrophication: metrics.eutrophication,
-  energy: metrics.energy
+  agribalyseAcidification: metrics.agribalyseAcidification,
+  smogFormation: metrics.smogFormation,
+  energy: metrics.energy,
+  fossilResources: metrics.fossilResources,
+  mineralResources: metrics.mineralResources
 };
 
 const waterMetrics = ['freshwater', 'consumedWater', 'dietWater', 'coolingWater', 'tapWater'];

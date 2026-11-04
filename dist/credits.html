@@ -26,7 +26,7 @@
     <section class="record">
       <h2>French foods, drinks and meals</h2>
       <p>Source ADEME, données AGRIBALYSE® v3.2 (2025). The calculator uses the <a href="https://data.ademe.fr/datasets/agribalyse-31-synthese">simplified product indicators</a> under the <a href="https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf">Etalab Open Licence 2.0</a>. Product data updated 27 February 2025, metadata updated 30 June 2026, accessed 4 November 2026. See <a href="https://doc.agribalyse.fr/documentation-en/agribalyse-data/terms-of-use-and-environmental-communication">ADEME’s conditions for application reuse</a>.</p>
-      <p>Product names are translated and all quantities use kilograms, including liquids. Freshwater nutrient pollution is converted from kilograms to grams of phosphorus equivalent. Water scarcity and soil-quality impacts retain their source indicators. Each product record gives its AGB identifier, source row and data-quality rating. Underlying process inventories are outside this release.</p>
+      <p>The calculator includes all 2,451 published product rows and selects nine indicators per kilogram of food, including drinks. It uses ADEME’s English product names, shortens selected labels and translates the category names. Freshwater and marine nutrient pollution are converted from kilograms to grams of phosphorus and nitrogen equivalent, respectively. Smog formation is expressed in grams of NMVOC equivalent and mineral resource depletion in milligrams of antimony equivalent. Climate, soil quality, water scarcity, acidification and fossil resource use retain their source units. Each record links its AGB identifier and carries its data-quality rating. The extract covers the public aggregate results only. See <a href="https://doc.agribalyse.fr/documentation-en/data-use/life-cycle-assessment-method">ADEME’s data quality guidance</a>.</p>
       <p>The ten French meal scenarios use ADEME’s <a href="https://impactco2.fr/outils/alimentation">Impact CO₂ recipe estimates</a>, which cite AGRIBALYSE v3.2 data dated 15 January 2025. We translated the meal labels and scaled the published results by meal count. See the <a href="https://github.com/incubateur-ademe/impactco2/blob/3106130d308c2cf5605d409779b7b22b32221258/src/data/categories/repas.ts">source recipe records</a> and the <a href="notices/impactco2-MIT.txt">Impact CO₂ repository’s MIT notice, © 2022 Datagir</a>. ADEME has not endorsed this calculator.</p>
     </section>
 
@@ -46,6 +46,24 @@
     <section class="record">
       <h2>Household water</h2>
       <p>© Commonwealth of Australia, <a href="https://www.energy.gov.au/households/water-efficiency"><cite>Water efficiency</cite></a>, accessed 4 November 2026. Adapted under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, subject to the <a href="https://www.energy.gov.au/copyright">website’s copyright notice</a>. We use selected WELS band endpoints for showers and 6 kg washing machines, and illustrative full- and half-flush volumes. Results scale with minutes, loads or flushes.</p>
+    </section>
+
+    <section class="record" id="appliances">
+      <h2>Appliance electricity and water</h2>
+      <p>© Commonwealth of Australia, Department of Climate Change, Energy, the Environment and Water. <a href="https://data.gov.au/data/dataset/559708e5-480e-4f94-8429-c49571e82761"><cite>Energy Rating Data for household appliances – Labelled Products</cite></a>, GEMS extracts dated 3 November 2026, under <a href="https://creativecommons.org/licenses/by/3.0/au/">CC BY 3.0 Australia</a>.</p>
+      <p>We selected supplier registrations for named models and retained the registration numbers and capacities. We converted annual electricity to rated cycles or operating days using the <a href="https://www.energyrating.gov.au/consumer-information/understand-energy-rating-label">regulator’s usage assumptions</a>. Wash water comes from the tested program, and television viewing uses measured on-mode power. These examples cover operation.</p>
+    </section>
+
+    <section class="record" id="australian-energy">
+      <h2>Australian grid electricity and fuels</h2>
+      <p>DCCEEW 2026, <a href="https://www.dcceew.gov.au/climate-change/publications/national-greenhouse-accounts-factors-2026"><cite>Australian National Greenhouse Accounts Factors</cite></a>, Department of Climate Change, Energy, the Environment and Water, Canberra, August. © Commonwealth of Australia 2026. <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. See the <a href="https://www.dcceew.gov.au/about/copyright">department’s copyright notice</a>.</p>
+      <p>We combined the location-based grid and upstream factors from Table 1. Tables 5–6 supply gas combustion and regional upstream factors, including the suggested proxies for Tasmania and the Northern Territory. Tables 8–9 supply fuel energy content and emissions factors for road and stationary fuel use. Each record gives the source units and conversion.</p>
+    </section>
+
+    <section class="record" id="uk-2026">
+      <h2>UK materials, motorcycles, taxis and ferries</h2>
+      <p>UK Department for Energy Security and Net Zero, <a href="https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2026"><cite>Greenhouse gas reporting: conversion factors 2026</cite></a>. © Crown copyright 2026. Contains public sector information licensed under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/">Open Government Licence v3.0</a>.</p>
+      <p>We selected published factors from the June full workbook. Motorcycle estimates use one rider per vehicle. Taxis and mixed passenger/freight ferries use passenger-kilometres. Material purchases use the primary, reused or closed-loop recycled column in the Material use worksheet, converted from tonnes to kilograms. The material factors cover procurement through the point of sale. See the <a href="https://assets.publishing.service.gov.uk/media/6a2940543b15d05a7ce3202e/2026-GHG-conversion-factors-methodology-report.pdf">2026 methodology</a> for the accounting boundaries.</p>
     </section>
 
     <section class="record">

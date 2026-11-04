@@ -1,11 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { foodGroups } from '../dist/data/food.js';
-import { travelUseGroups } from '../dist/data/travel-use.js';
-import { goodsGroups } from '../dist/data/goods.js';
+import { groups } from '../dist/data/catalogue.js';
+import { defaultUsage } from '../dist/defaults.js';
 import { metrics, comparisonMetrics, metricForOption, estimateChoice, displayImpact, formatEstimate, calculate, availableMetrics } from '../dist/model.js';
 
-const groups = [...foodGroups, ...travelUseGroups, ...goodsGroups];
 const option = (group, id) => groups.find(entry => entry.id === group).options.find(item => item.id === id);
 
 test('every factor has numeric values, a defined unit and publicly traceable evidence', () => {
@@ -14,6 +12,9 @@ test('every factor has numeric values, a defined unit and publicly traceable evi
     assert.ok(group.unit && group.plural && group.singular && group.sourceNote && group.defaultAmount > 0, group.id);
     assert.equal(new Set(group.options.map(item => item.id)).size, group.options.length);
     for (const item of group.options) {
+      const use = defaultUsage(group, item);
+      assert.ok(use.description && use.amount > 0 && use.times > 0, item.id);
+      assert.ok(['once', 'daily', 'weekly', 'monthly'].includes(use.period), item.id);
       assert.ok(item.label && item.id && Object.keys(item.values).length);
       assert.ok(group.sources.length || item.sources?.length);
       for (const source of [...group.sources, ...(item.sources || [])]) {
@@ -26,6 +27,21 @@ test('every factor has numeric values, a defined unit and publicly traceable evi
       }
     }
   }
+});
+
+test('appliance estimates recover label-year electricity and keep per-cycle water and on-mode power distinct', () => {
+  const dishwasher = option('dishwasher-cycles', 'adw1264');
+  assert.equal(estimateChoice(dishwasher, null, 1, 'daily', 1, 'energy'), 219);
+  assert.equal(estimateChoice(dishwasher, null, 1, 'once', 1, 'water'), 9.21);
+  assert.equal(estimateChoice(option('dryer-loads', 'acd0929'), null, 1, 'weekly', 1, 'energy'), 351);
+  assert.equal(estimateChoice(option('tv-viewing', 'atv6105'), null, 2, 'once', 1, 'energy'), 0.0526);
+});
+
+test('purchasing a 200 g garment converts the per-tonne procurement factors to the chosen mass', () => {
+  const primary = option('clothing-material', 'clothing-primary');
+  const reused = option('clothing-material', 'clothing-reused');
+  const change = estimateChoice(primary, reused, 0.2, 'once', 1, 'carbon');
+  assert.ok(Math.abs(change - (22310 - 152.25) * 0.2 / 1000) < 1e-9);
 });
 
 test('table and calculation details express changes in the same units and direction', () => {

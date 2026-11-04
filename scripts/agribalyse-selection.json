@@ -1,0 +1,260 @@
+[
+  {
+    "group": "food-products",
+    "id": "beef-steak",
+    "label": "Beef steak, grilled",
+    "sourceCode": "6200"
+  },
+  {
+    "group": "food-products",
+    "id": "beef-mince",
+    "label": "Beef mince, 15% fat, cooked",
+    "sourceCode": "6255"
+  },
+  {
+    "group": "food-products",
+    "id": "lamb-mutton",
+    "label": "Lamb leg, roasted",
+    "sourceCode": "21503"
+  },
+  {
+    "group": "food-products",
+    "id": "pork",
+    "label": "Pork chop, grilled",
+    "sourceCode": "28101"
+  },
+  {
+    "group": "food-products",
+    "id": "poultry-meat",
+    "label": "Chicken breast, skinless, cooked",
+    "sourceCode": "36018"
+  },
+  {
+    "group": "food-products",
+    "id": "farmed-fish",
+    "label": "Farmed salmon, baked",
+    "sourceCode": "26230"
+  },
+  {
+    "group": "food-products",
+    "id": "prawns",
+    "label": "Prawns, cooked",
+    "sourceCode": "10007"
+  },
+  {
+    "group": "food-products",
+    "id": "cheese",
+    "label": "Emmental cheese",
+    "sourceCode": "12115"
+  },
+  {
+    "group": "food-products",
+    "id": "eggs",
+    "label": "Eggs, hard-boiled",
+    "sourceCode": "22010"
+  },
+  {
+    "group": "food-products",
+    "id": "tofu",
+    "label": "Tofu, plain",
+    "sourceCode": "20904"
+  },
+  {
+    "group": "food-products",
+    "id": "peas",
+    "label": "Split peas, dried",
+    "sourceCode": "20515"
+  },
+  {
+    "group": "food-products",
+    "id": "other-pulses",
+    "label": "Lentils, dried",
+    "sourceCode": "20504"
+  },
+  {
+    "group": "food-products",
+    "id": "nuts",
+    "label": "Walnuts, dried, shelled",
+    "sourceCode": "15005"
+  },
+  {
+    "group": "food-products",
+    "id": "groundnuts",
+    "label": "Peanuts, roasted, unsalted",
+    "sourceCode": "15037"
+  },
+  {
+    "group": "food-products",
+    "id": "wheat-rye-bread",
+    "label": "Wholemeal bread",
+    "sourceCode": "7110"
+  },
+  {
+    "group": "food-products",
+    "id": "maize-meal",
+    "label": "Maize flour",
+    "sourceCode": "9545"
+  },
+  {
+    "group": "food-products",
+    "id": "oatmeal",
+    "label": "Rolled oats, dry",
+    "sourceCode": "9311"
+  },
+  {
+    "group": "food-products",
+    "id": "rice",
+    "label": "Rice, uncooked",
+    "sourceCode": "9100"
+  },
+  {
+    "group": "food-products",
+    "id": "potatoes",
+    "label": "Potatoes, boiled",
+    "sourceCode": "4003"
+  },
+  {
+    "group": "food-products",
+    "id": "cassava",
+    "label": "Cassava, cooked",
+    "sourceCode": "54034"
+  },
+  {
+    "group": "food-products",
+    "id": "tomatoes",
+    "label": "Tomatoes, raw, French consumption mix",
+    "sourceCode": "20047_1"
+  },
+  {
+    "group": "food-products",
+    "id": "onions-leeks",
+    "label": "Onions, raw",
+    "sourceCode": "20034"
+  },
+  {
+    "group": "food-products",
+    "id": "root-vegetables",
+    "label": "Carrots, raw",
+    "sourceCode": "20009"
+  },
+  {
+    "group": "food-products",
+    "id": "brassicas",
+    "label": "Broccoli, raw",
+    "sourceCode": "20057"
+  },
+  {
+    "group": "food-products",
+    "id": "other-vegetables",
+    "label": "Zucchini, raw",
+    "sourceCode": "20020"
+  },
+  {
+    "group": "food-products",
+    "id": "citrus-fruit",
+    "label": "Orange, edible pulp",
+    "sourceCode": "13034"
+  },
+  {
+    "group": "food-products",
+    "id": "bananas",
+    "label": "Banana, edible pulp",
+    "sourceCode": "13005"
+  },
+  {
+    "group": "food-products",
+    "id": "apples",
+    "label": "Apple, with skin",
+    "sourceCode": "13039"
+  },
+  {
+    "group": "food-products",
+    "id": "berries-grapes",
+    "label": "Strawberries, French consumption mix",
+    "sourceCode": "13014_1"
+  },
+  {
+    "group": "food-products",
+    "id": "other-fruit",
+    "label": "Pear, with skin",
+    "sourceCode": "13037"
+  },
+  {
+    "group": "food-products",
+    "id": "brown-sugar",
+    "label": "Brown sugar",
+    "sourceCode": "31017"
+  },
+  {
+    "group": "food-products",
+    "id": "white-sugar",
+    "label": "White sugar",
+    "sourceCode": "31016"
+  },
+  {
+    "group": "food-products",
+    "id": "coffee",
+    "label": "Ground coffee, dry",
+    "sourceCode": "18003"
+  },
+  {
+    "group": "food-products",
+    "id": "dark-chocolate",
+    "label": "Dark chocolate, over 70% cocoa",
+    "sourceCode": "31074"
+  },
+  {
+    "group": "food-liquids",
+    "id": "milk",
+    "label": "Whole milk, pasteurised",
+    "sourceCode": "19024"
+  },
+  {
+    "group": "food-liquids",
+    "id": "soy-milk",
+    "label": "Soy drink, plain",
+    "sourceCode": "18900"
+  },
+  {
+    "group": "food-liquids",
+    "id": "beer",
+    "label": "Beer, 4–5% alcohol",
+    "sourceCode": "5001"
+  },
+  {
+    "group": "food-liquids",
+    "id": "wine",
+    "label": "Red wine",
+    "sourceCode": "5214"
+  },
+  {
+    "group": "food-liquids",
+    "id": "soybean-oil",
+    "label": "Soy oil",
+    "sourceCode": "17420"
+  },
+  {
+    "group": "food-liquids",
+    "id": "palm-oil",
+    "label": "Palm oil, refined",
+    "sourceCode": "16150"
+  },
+  {
+    "group": "food-liquids",
+    "id": "sunflower-oil",
+    "label": "Sunflower oil",
+    "sourceCode": "17440"
+  },
+  {
+    "group": "food-liquids",
+    "id": "rapeseed-oil",
+    "label": "Rapeseed oil",
+    "sourceCode": "17130"
+  },
+  {
+    "group": "food-liquids",
+    "id": "olive-oil",
+    "label": "Olive oil, extra virgin",
+    "sourceCode": "17270"
+  }
+]
