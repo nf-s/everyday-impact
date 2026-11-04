@@ -86,7 +86,7 @@ export const aiDevelopmentGroups = [
         label: 'Build a web app · ' + budget.label.toLowerCase() + ' · ' + (outputTokens / 1000) + 'k tokens · ' + (model.gpus === 1 ? '30B proxy' : '480B FP8 proxy'),
         categoryPath: ['Digital', 'AI', 'Coding'], evidenceLabel: 'Modelled scenario', energyScope: 'GPU-only proxy', values: { energy: outputTokens * model.joulesPerOutputToken / 3600000 },
         reasoning: 'We estimate GPU electricity from a code-completion benchmark. Local tools, facility overhead and hosting are outside its scope. The assumed output-token budget is ' + stageText + ' = ' + outputTokens.toLocaleString('en-US') + '. GPU electricity = ' + outputTokens.toLocaleString('en-US') + ' output tokens × ' + displayNumber(model.joulesPerOutputToken) + ' J/token ÷ 3,600,000 J/kWh.',
-        defaultUsage: { amount: 1, times: 1, period: 'once', description: 'Assumes one build this year. ' + budget.output },
+        defaultUsage: { amount: 1, times: 1, period: 'once', description: 'Assumes one build during the comparison period. ' + budget.output },
         note: budget.output + ' ' + configuration(model),
         sources: modelSources(model),
         scenario: { author: 'AI-authored illustrative assumptions', outputTokens, stages: budget.stages.map(stage => ({ ...stage })), benchmarkModel: model.model, joulesPerOutputToken: model.joulesPerOutputToken }

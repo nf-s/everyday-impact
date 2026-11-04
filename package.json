@@ -3,7 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "python3 -m http.server --bind 127.0.0.1 --directory dist 8000",
-    "test": "node --test"
+    "start": "wrangler d1 migrations apply USAGE --local && wrangler pages dev --ip 127.0.0.1 --port 8000",
+    "test": "node --test",
+    "start:static": "python3 -m http.server --bind 127.0.0.1 --directory dist 8000"
+  },
+  "devDependencies": {
+    "wrangler": "4.155.0"
   }
 }

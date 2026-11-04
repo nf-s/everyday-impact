@@ -19,6 +19,6 @@ export const everydayElectricity = {
     values: { energy: watts * minutes / 60000 },
     reasoning: 'Assume a steady electrical input of ' + watts.toLocaleString('en-AU') + ' W for ' + minutes + ' minutes. ' +
       watts.toLocaleString('en-AU') + ' W ÷ 1,000 × ' + minutes + '/60 hours = ' + (watts * minutes / 60000) + ' kWh per use.',
-    defaultUsage: { amount: 1, times: 1, period: 'once', description: 'Assumes one use at ' + watts.toLocaleString('en-AU') + ' W for ' + minutes + ' minutes during the year.' }
+    defaultUsage: { amount: 1, times: 1, period: 'once', description: 'Assumes one use at ' + watts.toLocaleString('en-AU') + ' W for ' + minutes + ' minutes during the comparison period.' }
   }))
 };

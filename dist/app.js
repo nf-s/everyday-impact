@@ -1,10 +1,12 @@
+import { defaultChoice, itemName, replacementGroup, replacementPools, searchEntries } from './entries.js';
 import { groups } from './data/catalogue.js';
 import { labourEvidence } from './data/goods.js';
-import { metrics, comparisonMetrics, periods, validAmount, metricForOption, estimateChoice, formatEstimate, raw } from './model.js';
+import { metrics, comparisonMetrics, periods, defaultHorizon, validHorizon, horizonLabel, occurrencesFor, validAmount, metricForOption, estimateChoice, formatEstimate, number, raw } from './model.js';
 import { defaultUsage } from './defaults.js';
 import { activityPicker } from './picker.js';
 import { el, sourceLinks, evidenceBadge } from './dom.js';
 import { showMeasureDetails } from './measure-dialog.js';
+import { setupQuestionForm } from './question.js';
 
 const byId = new Map(groups.map(group => [group.id, group]));
 const categories = [...new Set(groups.map(group => group.category))];
@@ -52,7 +54,36 @@ const presets = [
 ];
 
 let choices = [];
+let comparisonHorizon = { ...defaultHorizon };
 const addChoiceButton = view('add-choice');
+
+export function setComparisonHorizon(horizon) {
+  if (!validHorizon(horizon)) return false;
+  const changed = horizon.amount !== comparisonHorizon.amount || horizon.unit !== comparisonHorizon.unit;
+  comparisonHorizon = { amount: horizon.amount, unit: horizon.unit };
+  view('horizon-amount').value = String(horizon.amount);
+  view('horizon-unit').value = horizon.unit;
+  view('horizon-amount').setAttribute('aria-invalid', 'false');
+  view('horizon-error').hidden = true;
+  if (changed) renderResults();
+  return true;
+}
+
+function updateComparisonHorizon() {
+  const amount = view('horizon-amount').valueAsNumber;
+  const unit = view('horizon-unit').value;
+  if (setComparisonHorizon({ amount, unit })) return;
+  view('horizon-amount').setAttribute('aria-invalid', 'true');
+  view('horizon-error').textContent = 'Enter a whole number from 1 to 1,000. Results still use ' + horizonLabel(comparisonHorizon) + '.';
+  view('horizon-error').hidden = false;
+}
+
+view('comparison-horizon').addEventListener('input', updateComparisonHorizon);
+view('comparison-horizon').addEventListener('change', updateComparisonHorizon);
+view('comparison-horizon').addEventListener('submit', event => {
+  event.preventDefault();
+  updateComparisonHorizon();
+});
 
 // Keep the labels alphabetical after Z (AA, AB, …).
 function choiceLetter(index) {
@@ -62,11 +93,6 @@ function choiceLetter(index) {
   }
   return label;
 }
-function defaultChoice(group, item) {
-  const { amount, period, times } = defaultUsage(group, item);
-  return { group: group.id, before: item.id, after: null, kind: 'footprint', amount, period, times };
-}
-
 function selections(choice) {
   const group = byId.get(choice.group);
   const before = group.options.find(option => option.id === choice.before);
@@ -89,80 +115,12 @@ function selectField(text, name, values, selected) {
   return label;
 }
 
-function itemName(group, item) {
-  if (item.genericEvidence) return item.label;
-  if (group.id === 'ai-request') return 'Gemini text prompt';
-  if (group.id === 'uk-diets') return item.label + ' diet';
-  if (group.id === 'au-grid-electricity') return 'Grid electricity · ' + item.label;
-  if (group.id === 'au-pipeline-gas') return 'Mains gas · ' + item.label;
-  return item.label;
-}
-
 function choiceTitle(choice) {
   const { group, before, afterGroup, after } = selections(choice);
   const name = itemName(group, before);
   if (choice.kind === 'skip') return 'Skip ' + name;
   if (after) return name + ' → ' + itemName(afterGroup, after);
   return name;
-}
-
-const foodSynonyms = [
-  ['chick pea', 'chickpea chickpeas garbanzo beans'],
-  ['sweet pepper', 'capsicum bell pepper'],
-  ['eggplant', 'aubergine'],
-  ['rolled oats', 'porridge oatmeal']
-];
-
-function replacementGroup(group, item) {
-  return item.replacementBasis || (item.sourceCode ? 'agribalyse' : group.id);
-}
-
-function genericHint(item) {
-  if (item.genericHint) return item.genericHint;
-  const evidence = item.genericEvidence;
-  if (evidence?.method === 'median') return 'Median of ' + evidence.contributors.length + ' records';
-  if (evidence?.method === 'representative') return 'Reference example';
-  return '';
-}
-
-const itemEntries = groups.flatMap(group => group.options.map(item => ({
-  label: itemName(group, item), groupLabel: group.label,
-  categoryLabel: titleCase(group.category), categoryPath: item.categoryPath,
-  generic: item.generic === true, genericHint: genericHint(item),
-  evidenceLabel: item.evidenceLabel,
-  aliases: [
-    item.sourceCode, item.sourceName, item.sourceFrenchName, item.genericHint, group.category, group.id, item.id,
-    ...foodSynonyms.filter(([term]) => group.category === 'food' && item.label.toLowerCase().includes(term)).map(([, aliases]) => aliases),
-    item.categoryPath?.includes('Chat responses') ? 'LLM chatbot prompt question' : '',
-    group.id === 'ai-web-app-development' ? 'coding agent website create develop programming' : '',
-    group.id === 'ai-summarisation' ? 'summarize document summary summarization' : ''
-  ].join(' '),
-  qualityLabel: item.qualityWarning ? (item.dqr > 4 ? 'Low data quality' : 'Data quality caution') : '',
-  replacementGroup: replacementGroup(group, item),
-  choice: defaultChoice(group, item)
-})));
-// The French product groups share a source, system boundary and mass denominator.
-const replacementPools = new Map();
-for (const entry of itemEntries) {
-  if (!replacementPools.has(entry.replacementGroup)) replacementPools.set(entry.replacementGroup, []);
-  replacementPools.get(entry.replacementGroup).push(entry);
-}
-const searchEntries = [...itemEntries];
-const changes = [
-  ['Switch to a vegan diet', 'go vegan plant based lifestyle', 'uk-diets', 'low-meat', 'vegan'],
-  ['Replace a beef meal with a vegan meal', 'swap steak dinner', 'french-meals', 'beef', 'vegan'],
-  ['Skip a Paris–New York return flight', 'avoid flying air travel', 'return-flight', 'paris-new-york-return', null],
-  ['Take the train instead of driving', 'commute car rail', 'surface-travel', 'petrol-car-solo', 'national-rail'],
-  ['Switch to an efficient showerhead', 'use less household water', 'shower', 'higher-9l', 'efficient-6l'],
-  ['Buy a garment second-hand', 'op shop thrift used clothing clothes', 'clothing-material', 'clothing-primary', 'clothing-reused'],
-  ['Switch between two 8 kg dryers', 'replace tumble dryer vented condenser laundry', 'dryer-loads', 'acd0929', 'acd0915']
-];
-for (const [label, aliases, groupId, beforeId, after] of changes) {
-  const group = byId.get(groupId);
-  const item = group.options.find(option => option.id === beforeId);
-  searchEntries.push({ label, aliases, categoryLabel: 'Lifestyle changes', groupLabel: titleCase(group.category), choice: {
-    ...defaultChoice(group, item), kind: after ? 'swap' : 'skip', after
-  } });
 }
 
 function portionUnit(group) {
@@ -287,6 +245,8 @@ function resultCell(row, entry, key, largest, unit) {
 }
 
 function renderResults() {
+  const horizonText = horizonLabel(comparisonHorizon);
+  view('results-title').textContent = 'Estimated impact over ' + horizonText;
   const entries = choices.flatMap((choice, index) => choice ? [{
     choice, letter: choiceLetter(index), title: choiceTitle(choice), ...selections(choice)
   }] : []);
@@ -303,9 +263,11 @@ function renderResults() {
     header.scope = 'col';
     header.append(el('small', 'column-letter', 'Choice ' + letter), title);
     if (validAmount(choice.amount) && validAmount(choice.times)) {
-      const quantity = choice.amount * choice.times * periods[choice.period].count;
+      const occurrences = occurrencesFor(choice.period, comparisonHorizon);
+      const quantity = choice.amount * choice.times * occurrences;
       const unit = quantity === 1 ? group.singular : group.plural;
-      header.append(el('small', 'column-quantity', raw(quantity) + ' ' + unit + ' in 12 months'));
+      const quantityText = Number.isInteger(occurrences) ? raw(quantity) : '≈ ' + number(quantity);
+      header.append(el('small', 'column-quantity', quantityText + ' ' + unit + ' in ' + horizonText));
     }
     headingRow.append(header);
   }
@@ -317,7 +279,7 @@ function renderResults() {
   for (const [key, metric] of Object.entries(comparisonMetrics)) {
     const measures = entries.map(entry => {
       const { before, after, choice } = entry;
-      const value = choice.kind === 'swap' && !after ? null : estimateChoice(before, after, choice.amount, choice.period, choice.times, key);
+      const value = choice.kind === 'swap' && !after ? null : estimateChoice(before, after, choice.amount, choice.period, choice.times, key, comparisonHorizon);
       return { ...entry, value };
     });
     const hasMissing = measures.some(entry => entry.value === null);
@@ -344,7 +306,7 @@ function renderResults() {
     details.append(eye, el('span', 'measure-details-text', 'Details'));
     details.setAttribute('aria-label', metric.label + ' calculation details');
     details.setAttribute('aria-haspopup', 'dialog');
-    details.addEventListener('click', () => showMeasureDetails(key, measures, details, unit));
+    details.addEventListener('click', () => showMeasureDetails(key, measures, details, unit, comparisonHorizon));
     const controls = el('div', 'measure-controls');
     controls.append(el('span', 'measure-label', metric.label), details);
     label.append(controls);
@@ -397,6 +359,7 @@ function removeChoice(index) {
 function loadPreset(id) {
   const preset = presets.find(item => item.id === id);
   if (!preset) return;
+  questionForm.invalidate();
   choices = preset.choices.map(item => ({ ...item, kind: preset.mode === 'footprints' ? 'footprint' : item.after ? 'swap' : 'skip' }));
   view('examples').value = id;
   renderAll();
@@ -404,7 +367,36 @@ function loadPreset(id) {
   view('result-rows').scrollLeft = 0;
 }
 
-function setCustom() { view('examples').value = 'custom'; }
+function setCustom() {
+  questionForm.invalidate();
+  view('examples').value = 'custom';
+}
+
+function validPlannedChoice(choice) {
+  const group = byId.get(choice.group);
+  const before = group?.options.find(item => item.id === choice.before);
+  if (!before || !validAmount(choice.amount) || !validAmount(choice.times) ||
+      typeof choice.period !== 'string' || !Object.hasOwn(periods, choice.period) || (choice.period === 'once' && choice.times !== 1)) return false;
+  if (choice.kind !== 'swap') return ['footprint', 'skip'].includes(choice.kind) && choice.after === null && !choice.afterGroup;
+  const afterGroup = byId.get(choice.afterGroup || group.id);
+  const after = afterGroup?.options.find(item => item.id === choice.after);
+  return after && before !== after && group.singular === afterGroup.singular &&
+    replacementGroup(group, before) === replacementGroup(afterGroup, after);
+}
+
+const questionForm = setupQuestionForm(({ choices: plan, horizon }) => {
+  if (!plan.every(validPlannedChoice) || (horizon !== undefined && !validHorizon(horizon))) {
+    throw new Error('The suggested choices could not be applied.');
+  }
+  choices = plan.map(choice => ({ ...choice }));
+  if (horizon) setComparisonHorizon(horizon);
+  view('examples').value = 'custom';
+  renderAll();
+  view('choices').scrollLeft = 0;
+  view('result-rows').scrollLeft = 0;
+});
+view('comparison-horizon').addEventListener('input', questionForm.invalidate);
+view('comparison-horizon').addEventListener('change', questionForm.invalidate);
 
 for (const region of [view('choices'), view('result-rows')]) {
   region.addEventListener('keydown', event => {

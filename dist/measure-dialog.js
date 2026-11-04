@@ -1,4 +1,4 @@
-import { comparisonMetrics, metrics, periods, metricForOption, validAmount, formatEstimate, raw } from './model.js';
+import { comparisonMetrics, metrics, defaultHorizon, horizonLabel, horizonExplanation, occurrencesFor, metricForOption, validAmount, formatEstimate, raw } from './model.js';
 import { el, sourceLinks, evidenceBadge } from './dom.js';
 
 let dialog;
@@ -27,7 +27,7 @@ function missingReason({ choice, before, after }, key) {
   return 'The original and replacement activities use different water definitions, so the sources do not support a difference.';
 }
 
-function formula({ choice, group, before, after, value }, metricKey) {
+function formula({ choice, group, before, after, value }, metricKey, horizon) {
   const from = raw(before.values[metricKey]);
   const unit = metrics[metricKey].unit;
   const factor = after ? '(' + from + ' − ' + raw(after.values[metricKey]) + ')' : from;
@@ -36,7 +36,8 @@ function formula({ choice, group, before, after, value }, metricKey) {
   if (choice.times !== 1) calculation += ' × ' + raw(choice.times) + ' times';
   if (choice.period !== 'once') {
     const cadence = { daily: 'day', weekly: 'week', monthly: 'month' }[choice.period];
-    calculation += ' per ' + cadence + ' × ' + periods[choice.period].count + ' ' + cadence + 's';
+    const occurrences = occurrencesFor(choice.period, horizon);
+    calculation += ' per ' + cadence + ' × ' + raw(occurrences) + ' ' + cadence + (occurrences === 1 ? '' : 's');
   }
   return calculation + ' = ' + raw(value) + ' ' + unit;
 }
@@ -68,7 +69,7 @@ function showGenericBasis(section, group, item, key) {
   section.append(details);
 }
 
-function renderEntry(entry, key, unit) {
+function renderEntry(entry, key, unit, horizon) {
   const { letter, title, choice, group, before, after, afterGroup, value } = entry;
   const section = el('section', 'measure-dialog-entry');
   section.append(el('h3', '', 'Choice ' + letter + ' · ' + title));
@@ -76,9 +77,9 @@ function renderEntry(entry, key, unit) {
     section.append(el('p', 'measure-dialog-result', 'No estimate'), el('p', 'measure-dialog-scope', missingReason(entry, key)));
   } else {
     const metricKey = metricForOption(before, key);
-    const label = choice.kind === 'footprint' ? 'Annual footprint' : 'Annual change';
+    const label = (choice.kind === 'footprint' ? 'Footprint' : 'Change') + ' over ' + horizonLabel(horizon);
     section.append(el('p', 'measure-dialog-result', label + ' · ' + formatEstimate(value, key, choice.kind, unit)));
-    section.append(el('p', 'measure-dialog-formula', formula(entry, metricKey)));
+    section.append(el('p', 'measure-dialog-formula', formula(entry, metricKey, horizon)));
     showGenericBasis(section, group, before, key);
     if (after && after !== before) showGenericBasis(section, afterGroup, after, key);
     if (after) section.append(el('p', 'measure-dialog-scope', 'The change is the original factor minus the replacement factor. A negative result means an increase.'));
@@ -114,7 +115,7 @@ function renderEntry(entry, key, unit) {
   return section;
 }
 
-export function showMeasureDetails(key, entries, trigger, unit) {
+export function showMeasureDetails(key, entries, trigger, unit, horizon = defaultHorizon) {
   const modal = getDialog();
   opener = trigger;
   const header = el('div', 'dialog-header');
@@ -125,9 +126,9 @@ export function showMeasureDetails(key, entries, trigger, unit) {
   close.type = 'button';
   close.addEventListener('click', () => modal.close());
   header.append(title, close);
-  const intro = el('p', 'measure-dialog-intro', metric.note);
+  const intro = el('p', 'measure-dialog-intro', metric.note + ' ' + horizonExplanation(horizon));
   intro.id = 'measure-dialog-description';
-  modal.replaceChildren(header, intro, ...entries.map(entry => renderEntry(entry, key, unit)));
+  modal.replaceChildren(header, intro, ...entries.map(entry => renderEntry(entry, key, unit, horizon)));
   modal.showModal();
   modal.scrollTop = 0;
   close.focus({ preventScroll: true });

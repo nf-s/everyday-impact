@@ -54,6 +54,43 @@ export const periods = {
   monthly: { label: 'Every month', count: 12 }
 };
 
+export const defaultHorizon = Object.freeze({ amount: 12, unit: 'months' });
+export const horizonUnits = {
+  days: { singular: 'day', label: 'Days' },
+  weeks: { singular: 'week', label: 'Weeks' },
+  months: { singular: 'month', label: 'Months' },
+  years: { singular: 'year', label: 'Years' }
+};
+
+export function validHorizon(horizon) {
+  return horizon !== null && typeof horizon === 'object' && !Array.isArray(horizon) && Number.isInteger(horizon.amount) &&
+    horizon.amount >= 1 && horizon.amount <= 1000 && typeof horizon.unit === 'string' && Object.hasOwn(horizonUnits, horizon.unit);
+}
+
+export function horizonLabel(horizon = defaultHorizon) {
+  if (!validHorizon(horizon)) return '';
+  return raw(horizon.amount) + ' ' + (horizon.amount === 1 ? horizonUnits[horizon.unit].singular : horizon.unit);
+}
+
+export function horizonExplanation(horizon = defaultHorizon) {
+  if (!validHorizon(horizon)) return '';
+  const basis = ['days', 'weeks'].includes(horizon.unit)
+    ? 'Day and week comparisons use 7-day weeks and average months of 365 ÷ 12 days.'
+    : 'Month and year comparisons use 365 daily, 52 weekly and 12 monthly occurrences per year.';
+  return basis + ' Recurring schedules are prorated, so fractional occurrences are averages rather than a count of completed actions. One-off actions count once.';
+}
+
+export function occurrencesFor(period, horizon = defaultHorizon) {
+  if (!validHorizon(horizon) || !Object.hasOwn(periods, period)) return null;
+  if (period === 'once') return 1;
+  if (horizon.unit === 'months' || horizon.unit === 'years') {
+    const months = horizon.amount * (horizon.unit === 'years' ? 12 : 1);
+    return periods[period].count * months / 12;
+  }
+  const days = horizon.amount * (horizon.unit === 'weeks' ? 7 : 1);
+  return days / { daily: 1, weekly: 7, monthly: 365 / 12 }[period];
+}
+
 const displayNumber = new Intl.NumberFormat('en-AU', { maximumSignificantDigits: 3 });
 const factorNumber = new Intl.NumberFormat('en-AU', { maximumSignificantDigits: 10 });
 export const number = value => displayNumber.format(value);
@@ -66,19 +103,20 @@ export function availableMetrics(before, after) {
   return Object.keys(metrics).filter(key => before.values[key] !== undefined && (!after || after.values[key] !== undefined));
 }
 
-export function calculate(before, after, amount, period, metric) {
-  if (!validAmount(amount) || !Object.hasOwn(periods, period)) return null;
+export function calculate(before, after, amount, period, metric, horizon = defaultHorizon) {
+  const occurrences = occurrencesFor(period, horizon);
+  if (!validAmount(amount) || occurrences === null) return null;
   const from = before.values[metric];
   const to = after ? after.values[metric] : 0;
   if (from === undefined || to === undefined) return null;
-  return (from - to) * amount * periods[period].count;
+  return (from - to) * amount * occurrences;
 }
 
-export function estimateChoice(before, after, amount, period, times, displayKey) {
+export function estimateChoice(before, after, amount, period, times, displayKey, horizon = defaultHorizon) {
   if (!validAmount(times)) return null;
   const sourceKey = metricForOption(before, displayKey);
   if (sourceKey === null || (after !== null && metricForOption(after, displayKey) !== sourceKey)) return null;
-  const base = calculate(before, after, amount, period, sourceKey);
+  const base = calculate(before, after, amount, period, sourceKey, horizon);
   if (base === null) return null;
   const result = base * times;
   return Number.isFinite(result) ? result : null;

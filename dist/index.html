@@ -8,6 +8,7 @@
   <title>Everyday impact</title>
   <link rel="icon" href="mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="question.css">
   <script type="module" src="app.js"></script>
 </head>
 <body>
@@ -19,12 +20,28 @@
   <main id="main" class="shell">
     <section id="compare" aria-labelledby="compare-title">
       <div class="page-heading">
-        <div><h1 id="compare-title">Compare everyday actions</h1><p>Compare a full year of each activity. One-off actions count once, and recurring actions follow the schedule on each card.</p></div>
+        <div><h1 id="compare-title">Compare everyday actions</h1><p>Choose activities and a time period. You can edit each activity’s schedule in Advanced.</p></div>
       </div>
+      <form id="question-form" class="question-form" novalidate aria-busy="false" aria-describedby="question-note">
+        <label for="question-input">Ask a comparison question</label>
+        <div class="question-entry">
+          <textarea id="question-input" name="question" rows="2" maxlength="500" required aria-describedby="question-note question-status" placeholder="Compare two AI images a day with running a kettle once a day for a month"></textarea>
+          <div class="question-actions"><button type="submit">Compare</button><button type="button" id="question-cancel" hidden>Cancel</button><button type="button" id="question-voice" aria-pressed="false" aria-describedby="question-voice-note" hidden>Dictate</button></div>
+        </div>
+        <p id="question-note">Cloudflare AI matches your question to the catalogue. <span id="question-voice-note" hidden>Dictation may send audio to your browser’s speech service.</span></p>
+        <p id="question-status" class="question-status" role="status" aria-live="polite" aria-atomic="true"></p>
+        <p id="question-voice-status" class="question-status" role="status" aria-live="polite" aria-atomic="true"></p>
+      </form>
       <div class="examples"><label for="examples">Examples</label><select id="examples"></select></div>
       <div class="choices" id="choices" role="region" aria-label="Activity choices" tabindex="0"><button type="button" id="add-choice" class="add-choice" aria-label="Add choice" title="Add choice">+</button></div>
       <section class="results" aria-labelledby="results-title">
         <div class="results-heading"><div><h2 id="results-title">Estimated impact over 12 months</h2><p id="bar-guide">Bar lengths compare the size of the estimates within each row.</p></div><label class="hide-measures"><input type="checkbox" id="shared-only"> Only show measures available for all choices</label></div>
+        <form id="comparison-horizon" class="comparison-horizon" aria-label="Comparison period" aria-describedby="horizon-note horizon-error">
+          <label for="horizon-amount">Comparison period<input id="horizon-amount" type="number" min="1" max="1000" step="1" value="12" inputmode="numeric" required></label>
+          <label for="horizon-unit">Unit<select id="horizon-unit"><option value="days">Days</option><option value="weeks">Weeks</option><option value="months" selected>Months</option><option value="years">Years</option></select></label>
+          <p id="horizon-note">Recurring activities are averaged over the period. One-off actions count once.</p>
+          <p id="horizon-error" role="status" hidden></p>
+        </form>
         <div id="result-rows" class="result-scroll" role="region" aria-label="Impact measures" tabindex="0"></div>
         <p id="electronics-credit" class="lib-intro" hidden>Electronics estimates use the <a href="credits.html#electronics">Boavizta dataset under ODbL 1.0</a>.</p>
         <p id="measure-note" class="result-note"></p>

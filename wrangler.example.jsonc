@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "everyday-impact",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-10-30",
+  "ai": { "binding": "AI", "remote": true },
+  "d1_databases": [
+    {
+      "binding": "USAGE",
+      "database_name": "everyday-impact-usage",
+      "database_id": "<YOUR_D1_DATABASE_ID>"
+    }
+  ]
+}
