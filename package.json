@@ -1,0 +1,9 @@
+{
+  "name": "everyday-impact",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server --bind 127.0.0.1 --directory dist 8000",
+    "test": "node --test"
+  }
+}

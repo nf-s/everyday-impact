@@ -1,0 +1,431 @@
+import { foodGroups } from './data/food.js';
+import { goodsGroups, labourEvidence } from './data/goods.js';
+import { travelUseGroups } from './data/travel-use.js';
+import { metrics, comparisonMetrics, periods, validAmount, metricForOption, estimateChoice, formatEstimate, raw } from './model.js';
+import { defaultUsage } from './defaults.js';
+import { activityPicker } from './picker.js';
+import { el, sourceLinks } from './dom.js';
+import { showMeasureDetails } from './measure-dialog.js';
+
+const groups = [...foodGroups, ...travelUseGroups, ...goodsGroups];
+const byId = new Map(groups.map(group => [group.id, group]));
+const categories = [...new Set(groups.map(group => group.category))];
+const view = id => document.getElementById(id);
+const titleCase = text => text.charAt(0).toUpperCase() + text.slice(1);
+const pick = (group, before, after, amount = 1, period = 'once') => ({ group, before, after, amount, period, times: 1 });
+const presets = [
+  { id: 'ai-beef', label: 'AI prompts and beef', mode: 'footprints', choices: [
+    defaultChoice(byId.get('ai-request'), byId.get('ai-request').options[0]),
+    defaultChoice(byId.get('us-beef'), byId.get('us-beef').options[0])] },
+  { id: 'flight-diet', label: 'Flight and diet', mode: 'changes', choices: [
+    pick('return-flight', 'paris-new-york-return', null), pick('uk-diets', 'low-meat', 'vegan', 1, 'daily')] },
+  { id: 'food-water', label: 'Beef and tofu', mode: 'footprints', choices: [
+    pick('food-products', 'beef-steak', null, 0.15), pick('food-products', 'tofu', null, 0.15)] },
+  { id: 'household-water', label: 'Showering and laundry', mode: 'changes', choices: [
+    pick('shower', 'higher-9l', 'efficient-6l', 4, 'daily'), pick('laundry-load', 'washer-6kg-3star', 'washer-6kg-4star', 4, 'weekly')] },
+  { id: 'hobart', label: 'Hobart flights and meals', mode: 'changes', choices: [
+    pick('australian-flight-routes', 'hobart-melbourne-economy', null, 2), pick('french-meals', 'beef', 'vegan', 1, 'weekly')] },
+  { id: 'travel-meals', label: 'Commuting and meals', mode: 'changes', choices: [
+    pick('surface-travel', 'petrol-car-solo', 'national-rail', 50, 'weekly'), pick('french-meals', 'beef', 'vegan', 3, 'weekly')] },
+  { id: 'ai', label: 'AI use and a return flight', mode: 'footprints', choices: [
+    pick('ai-request', 'gemini-text-2025', null, 20, 'daily'), pick('return-flight', 'paris-new-york-return', null)] },
+  { id: 'goods', label: 'A T-shirt and a smartphone', mode: 'footprints', choices: [
+    pick('apparel', 'cotton-tshirt', null), pick('digital-devices', 'smartphone', null)] }
+];
+
+let choices = [];
+const addChoiceButton = view('add-choice');
+
+// Keep the labels alphabetical after Z (AA, AB, …).
+function choiceLetter(index) {
+  let label = '';
+  for (let n = index + 1; n > 0; n = Math.floor((n - 1) / 26)) {
+    label = String.fromCharCode(65 + (n - 1) % 26) + label;
+  }
+  return label;
+}
+function defaultChoice(group, item) {
+  const { amount, period, times } = defaultUsage(group, item);
+  return { group: group.id, before: item.id, after: null, kind: 'footprint', amount, period, times };
+}
+
+function selections(choice) {
+  const group = byId.get(choice.group);
+  const before = group.options.find(option => option.id === choice.before);
+  const after = choice.kind === 'swap' && choice.after ? group.options.find(option => option.id === choice.after) : null;
+  return { group, before, after };
+}
+
+function options(select, items, value) {
+  select.replaceChildren(...items.map(([id, label]) => new Option(label, id)));
+  select.value = value;
+}
+
+function selectField(text, name, values, selected) {
+  const label = el('label', '', text);
+  const select = el('select');
+  select.dataset.field = name;
+  options(select, values, selected);
+  label.append(select);
+  return label;
+}
+
+function itemName(group, item) {
+  if (group.id === 'ai-request') return 'Gemini text prompt';
+  if (group.id === 'uk-diets') return item.label + ' diet';
+  return item.label;
+}
+
+function choiceTitle(choice) {
+  const { group, before, after } = selections(choice);
+  const name = itemName(group, before);
+  if (choice.kind === 'skip') return 'Skip ' + name;
+  if (after) return name + ' → ' + itemName(group, after);
+  return name;
+}
+
+const searchEntries = groups.flatMap(group => group.options.map(item => ({
+  label: itemName(group, item), groupLabel: group.label,
+  aliases: [item.label, group.category, group.id, item.id, group.id === 'ai-request' ? 'LLM chatbot question' : ''].join(' '),
+  choice: defaultChoice(group, item)
+})));
+const changes = [
+  ['Switch to a vegan diet', 'go vegan plant based lifestyle', 'uk-diets', 'low-meat', 'vegan'],
+  ['Replace a beef meal with a vegan meal', 'swap steak dinner', 'french-meals', 'beef', 'vegan'],
+  ['Skip a Paris–New York return flight', 'avoid flying air travel', 'return-flight', 'paris-new-york-return', null],
+  ['Take the train instead of driving', 'commute car rail', 'surface-travel', 'petrol-car-solo', 'national-rail'],
+  ['Switch to an efficient showerhead', 'use less household water', 'shower', 'higher-9l', 'efficient-6l']
+];
+for (const [label, aliases, groupId, beforeId, after] of changes) {
+  const group = byId.get(groupId);
+  const item = group.options.find(option => option.id === beforeId);
+  searchEntries.push({ label, aliases, groupLabel: 'Lifestyle changes', choice: {
+    ...defaultChoice(group, item), kind: after ? 'swap' : 'skip', after
+  } });
+}
+
+function portionUnit(group) {
+  if (group.singular === 'kg') return { scale: 1000, label: 'g' };
+  if (group.singular === 'litre') return { scale: 1000, label: 'mL' };
+  return { scale: 1, label: group.plural };
+}
+
+function usageText(choice) {
+  const { group, before } = selections(choice);
+  if (!validAmount(choice.amount) || !validAmount(choice.times)) return 'Enter a positive quantity and frequency in Advanced.';
+  const suggested = defaultUsage(group, before);
+  if (['amount', 'times', 'period'].every(key => choice[key] === suggested[key])) return suggested.description;
+  const portion = portionUnit(group);
+  const unit = portion.scale === 1 && choice.amount === 1 ? group.singular : portion.label;
+  const cadence = { daily: 'day', weekly: 'week', monthly: 'month' };
+  const schedule = choice.period === 'once' ? 'once' : raw(choice.times) + (choice.times === 1 ? ' time' : ' times') + ' per ' + cadence[choice.period];
+  return raw(choice.amount * portion.scale) + ' ' + unit + ', ' + schedule + '.';
+}
+
+function numericField(text, field, value, scale = 1) {
+  const label = el('label', '', text);
+  const input = el('input');
+  input.type = 'number';
+  input.min = '0';
+  input.max = String(1000000 * scale);
+  input.step = 'any';
+  input.value = validAmount(value) ? String(Number((value * scale).toPrecision(12))) : '';
+  input.dataset.field = field;
+  label.append(input);
+  return label;
+}
+
+function renderCard(index, keepOpen = false) {
+  const choice = choices[index];
+  const letter = choiceLetter(index);
+  const card = el('article', 'choice');
+  card.dataset.index = index;
+  card.setAttribute('aria-label', 'Choice ' + letter);
+  const picker = activityPicker(searchEntries, choice ? choiceTitle(choice) : '', letter, entry => {
+    choices[index] = { ...entry.choice };
+    setCustom();
+    refreshChoice(index, 'picker');
+  });
+  if (choices.length > 1) {
+    const remove = el('button', 'remove-choice', '×');
+    remove.type = 'button';
+    remove.title = 'Remove choice ' + letter;
+    remove.setAttribute('aria-label', remove.title);
+    remove.addEventListener('click', () => removeChoice(index));
+    picker.append(remove);
+  }
+  card.append(picker);
+  if (!choice) return card;
+  const { group, before } = selections(choice);
+  const description = el('p', 'choice-context', usageText(choice));
+  picker.append(description);
+  const advanced = el('details', 'advanced');
+  advanced.open = keepOpen;
+  advanced.append(el('summary', '', 'Advanced'));
+  const fields = el('div', 'fields');
+  const pair = el('div', 'pair');
+  const portion = portionUnit(group);
+  pair.append(numericField('Quantity (' + portion.label + ')', 'amount', choice.amount, portion.scale), selectField('Frequency', 'period',
+    Object.entries(periods).map(([key, item]) => [key, item.label]), choice.period));
+  fields.append(pair);
+  if (choice.period !== 'once') fields.append(numericField('Times per ' + { daily: 'day', weekly: 'week', monthly: 'month' }[choice.period], 'times', choice.times));
+  const alternatives = [['footprint', 'Footprint of this activity'], ['skip', 'Change from skipping this activity'],
+    ...group.options.filter(item => item.id !== before.id).map(item => [item.id, 'Replace with ' + item.label])];
+  fields.append(selectField('Estimate', 'alternative', alternatives, choice.kind === 'swap' ? choice.after : choice.kind));
+  advanced.append(fields);
+  card.append(advanced);
+  return card;
+}
+
+function refreshChoice(index, focusField) {
+  const existing = view('choices').children[index];
+  const card = renderCard(index, existing.querySelector('details')?.open);
+  existing.replaceWith(card);
+  const target = focusField === 'picker' ? '[role="combobox"]' : '[data-field="' + focusField + '"]';
+  card.querySelector(target)?.focus({ preventScroll: true });
+  renderResults();
+}
+
+function resultCell(row, entry, key, largest) {
+  const cell = row.insertCell();
+  const { choice, before, value } = entry;
+  if (value === null) {
+    const valid = validAmount(choice.amount) && validAmount(choice.times);
+    cell.append(el('span', 'metric-detail', valid ? 'No estimate' : 'Check quantity'));
+    return;
+  }
+
+  cell.append(el('span', 'metric-value', formatEstimate(value, key, choice.kind)));
+  const bar = el('div', 'metric-bar');
+  bar.setAttribute('aria-hidden', 'true');
+  const fill = el('div', value === 0 ? 'metric-fill' : 'metric-fill has-value');
+  fill.style.width = (largest ? Math.abs(value) / largest * 100 : 0) + '%';
+  bar.append(fill);
+  cell.append(bar);
+  if (key === 'water') {
+    cell.append(el('small', 'metric-detail water-scope', metrics[metricForOption(before, key)].label));
+  }
+}
+
+function renderResults() {
+  const entries = choices.flatMap((choice, index) => choice ? [{
+    choice, letter: choiceLetter(index), title: choiceTitle(choice), ...selections(choice)
+  }] : []);
+  const notes = [];
+  const table = el('table', 'comparison-table');
+  table.setAttribute('aria-labelledby', 'results-title');
+  table.style.setProperty('--choice-count', entries.length);
+  const headingRow = table.createTHead().insertRow();
+  const measureHeading = el('th', '', 'Measure');
+  measureHeading.scope = 'col';
+  headingRow.append(measureHeading);
+  for (const { letter, title, choice, group } of entries) {
+    const header = el('th');
+    header.scope = 'col';
+    header.append(el('small', 'column-letter', 'Choice ' + letter), title);
+    if (validAmount(choice.amount) && validAmount(choice.times)) {
+      const quantity = choice.amount * choice.times * periods[choice.period].count;
+      const unit = quantity === 1 ? group.singular : group.plural;
+      header.append(el('small', 'column-quantity', raw(quantity) + ' ' + unit + ' in 12 months'));
+    }
+    headingRow.append(header);
+  }
+
+  const body = table.createTBody();
+  const sharedOnly = view('shared-only').checked;
+  let missing = false;
+  const waterScopes = new Set();
+  for (const [key, metric] of Object.entries(comparisonMetrics)) {
+    const measures = entries.map(entry => {
+      const { before, after, choice } = entry;
+      return { ...entry, value: estimateChoice(before, after, choice.amount, choice.period, choice.times, key) };
+    });
+    const hasMissing = measures.some(entry => entry.value === null);
+    if (!measures.length || (sharedOnly && hasMissing)) continue;
+    if (hasMissing) missing = true;
+    const row = body.insertRow();
+    const label = el('th', 'measure-text');
+    label.scope = 'row';
+    const details = el('button', 'measure-details', 'Details');
+    details.type = 'button';
+    details.setAttribute('aria-label', metric.label + ' calculation details');
+    details.setAttribute('aria-haspopup', 'dialog');
+    details.addEventListener('click', () => showMeasureDetails(key, measures, details));
+    const controls = el('div', 'measure-controls');
+    controls.append(el('span', 'measure-label', metric.label), details);
+    label.append(controls);
+    row.append(label);
+    const largest = measures.reduce((max, entry) => Math.max(max, Math.abs(entry.value ?? 0)), 0);
+    for (const entry of measures) {
+      resultCell(row, entry, key, largest);
+      if (key === 'water' && entry.value !== null) waterScopes.add(metricForOption(entry.before, key));
+    }
+  }
+  view('result-rows').replaceChildren(...(entries.length ? [table] : []));
+  view('bar-guide').hidden = !body.rows.length;
+  if (!entries.length) notes.push('Choose an activity to see its estimates.');
+  else if (entries.some(({ choice }) => !validAmount(choice.amount) || !validAmount(choice.times))) notes.push('Enter a positive quantity and frequency in Advanced.');
+  else if (!body.rows.length) notes.push('No shared estimates. Clear the checkbox to see the available figures.');
+  else if (missing) notes.push('“No estimate” means a comparable figure is unavailable for that measure.');
+  if (waterScopes.size > 1) notes.push('Water volumes cover different uses. The labels show what each source counts.');
+  if (entries.some(entry => goodsGroups.includes(entry.group))) notes.push('Goods use the production or lifetime boundary shown in Details.');
+  view('electronics-credit').hidden = !entries.some(entry => entry.group.id === 'digital-devices');
+  view('measure-note').textContent = notes.join(' ');
+  view('measure-note').hidden = !notes.length;
+}
+
+function openAdvancedCards() {
+  return Array.from(view('choices').querySelectorAll('.choice'), card => Boolean(card.querySelector('.advanced')?.open));
+}
+
+function renderAll(open = []) {
+  const cards = choices.map((_, index) => renderCard(index, open[index]));
+  view('choices').replaceChildren(...cards, addChoiceButton);
+  renderResults();
+}
+
+addChoiceButton.addEventListener('click', () => {
+  const open = openAdvancedCards();
+  choices.push(null);
+  setCustom();
+  renderAll(open);
+  view('activity-' + choiceLetter(choices.length - 1)).focus();
+});
+
+function removeChoice(index) {
+  const open = openAdvancedCards();
+  choices.splice(index, 1);
+  open.splice(index, 1);
+  setCustom();
+  renderAll(open);
+  view('activity-' + choiceLetter(Math.min(index, choices.length - 1))).focus({ preventScroll: true });
+}
+
+function loadPreset(id) {
+  const preset = presets.find(item => item.id === id);
+  if (!preset) return;
+  choices = preset.choices.map(item => ({ ...item, kind: preset.mode === 'footprints' ? 'footprint' : item.after ? 'swap' : 'skip' }));
+  view('examples').value = id;
+  renderAll();
+  view('choices').scrollLeft = 0;
+  view('result-rows').scrollLeft = 0;
+}
+
+function setCustom() { view('examples').value = 'custom'; }
+
+for (const region of [view('choices'), view('result-rows')]) {
+  region.addEventListener('keydown', event => {
+    if (event.target !== region || region.scrollWidth <= region.clientWidth || event.metaKey || event.altKey || event.ctrlKey) return;
+    const distance = { ArrowLeft: -48, ArrowRight: 48, Home: -region.scrollWidth, End: region.scrollWidth }[event.key];
+    if (!distance) return;
+    event.preventDefault();
+    region.scrollLeft += distance;
+  });
+}
+
+view('choices').addEventListener('input', event => {
+  const input = event.target;
+  if (!(input instanceof HTMLInputElement) || !['amount', 'times'].includes(input.dataset.field)) return;
+  const card = input.closest('.choice');
+  const choice = choices[Number(card.dataset.index)];
+  const scale = input.dataset.field === 'amount' ? portionUnit(byId.get(choice.group)).scale : 1;
+  choice[input.dataset.field] = input.valueAsNumber / scale;
+  input.setAttribute('aria-invalid', String(!validAmount(choice[input.dataset.field])));
+  card.querySelector('.choice-context').textContent = usageText(choice);
+  setCustom();
+  renderResults();
+});
+view('choices').addEventListener('change', event => {
+  const select = event.target;
+  if (!(select instanceof HTMLSelectElement)) return;
+  const index = Number(select.closest('.choice').dataset.index);
+  const choice = choices[index];
+  if (select.dataset.field === 'period') {
+    choice.period = select.value;
+    if (choice.period === 'once') choice.times = 1;
+  } else if (select.dataset.field === 'alternative') {
+    choice.kind = ['skip', 'footprint'].includes(select.value) ? select.value : 'swap';
+    choice.after = choice.kind === 'swap' ? select.value : null;
+  }
+  setCustom();
+  refreshChoice(index, select.dataset.field);
+});
+view('shared-only').addEventListener('change', renderResults);
+options(view('examples'), [['custom', 'Custom comparison'], ...presets.map(preset => [preset.id, preset.label])], 'ai-beef');
+view('examples').options[0].disabled = true;
+view('examples').addEventListener('change', event => loadPreset(event.target.value));
+
+function useFactor(group, item, index) {
+  choices[index] = defaultChoice(group, item);
+  setCustom();
+  renderAll();
+  location.hash = 'compare';
+}
+
+function factorRecord(group, item) {
+  const record = el('article', 'factor');
+  record.append(el('h3', '', item.label));
+  for (const [key, value] of Object.entries(item.values)) {
+    record.append(el('p', '', metrics[key].label + ' · ' + raw(value) + ' ' + metrics[key].unit));
+  }
+  if (item.note) record.append(el('p', '', item.note));
+  if (item.sources?.length) record.append(sourceLinks(item.sources));
+  const actions = el('div', 'factor-actions');
+  choices.forEach((_, index) => {
+    const letter = choiceLetter(index);
+    const button = el('button', '', 'Use in ' + letter);
+    button.type = 'button';
+    button.setAttribute('aria-label', 'Use ' + item.label + ' in choice ' + letter);
+    button.addEventListener('click', () => useFactor(group, item, index));
+    actions.append(button);
+  });
+  record.append(actions);
+  return record;
+}
+
+function renderLibrary() {
+  const text = view('search').value.trim().toLocaleLowerCase();
+  const category = view('filter-category').value;
+  const list = view('library-groups');
+  list.replaceChildren();
+  let total = 0;
+  for (const group of groups) {
+    if (category && category !== group.category) continue;
+    const items = group.options.filter(item => [group.category, group.label, item.label, ...Object.keys(item.values).map(key => metrics[key].label)].join(' ').toLocaleLowerCase().includes(text));
+    if (!items.length) continue;
+    const details = el('details', 'library-group');
+    details.open = Boolean(text);
+    details.append(el('summary', '', group.label + ' · ' + items.length));
+    details.append(el('p', 'lib-intro', 'Unit · ' + group.unit), el('p', 'lib-intro', group.sourceNote), sourceLinks(group.sources));
+    for (const item of items) details.append(factorRecord(group, item));
+    list.append(details);
+    total += items.length;
+  }
+  view('library-count').textContent = raw(total) + (total === 1 ? ' example. ' : ' examples. ') + 'Each estimate includes its unit, scope and source.';
+  if (!total) list.append(el('p', '', 'No matches. Try another term or category.'));
+}
+
+options(view('filter-category'), [['', 'All categories'], ...categories.map(category => [category, titleCase(category)])], '');
+view('search').addEventListener('input', renderLibrary);
+view('filter-category').addEventListener('change', renderLibrary);
+for (const item of labourEvidence) {
+  const article = el('article', 'record');
+  article.append(el('p', 'scope', item.brand), el('h2', '', item.title), el('p', '', item.detail), el('p', '', item.scope), sourceLinks(item.sources));
+  view('labour-records').append(article);
+}
+
+function navigate() {
+  const hash = location.hash.slice(1);
+  const tab = ['library', 'labour'].includes(hash) ? hash : 'compare';
+  for (const name of ['compare', 'library', 'labour']) {
+    view(name).hidden = name !== tab;
+    const link = document.querySelector('nav a[href="#' + name + '"]');
+    if (name === tab) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  }
+  if (tab === 'library') renderLibrary();
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', navigate);
+loadPreset('ai-beef');
+navigate();

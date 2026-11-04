@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sources and licences · Everyday impact</title>
+  <link rel="icon" href="mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="masthead"><div class="shell mast-inner">
+    <a class="brand" href="./"><img src="mark.svg" width="30" height="30" alt="">Everyday impact</a>
+    <nav aria-label="Main navigation"><a href="./">Compare</a><a href="./#library">Factor library</a><a href="./#labour">Labour evidence</a></nav>
+  </div></header>
+  <main class="shell credits-page">
+    <h1>Sources and licences</h1>
+    <p>Each source has its own reuse terms. The <a href="./#library">factor library</a> links individual estimates to their evidence. Everyday impact supplies the example servings, schedules and annual calculations.</p>
+
+    <section class="record">
+      <h2>US beef</h2>
+      <p>Senorpe Asem-Hiablie, Thomas Battagliese, Kimberly R. Stackhouse-Lawson and C. Alan Rotz, <a href="https://doi.org/10.1007/s11367-018-1464-6"><cite>A life cycle assessment of the environmental impacts of a beef system in the USA</cite></a> (published online 2018, journal volume 2019). © The Author(s) 2018. <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+      <p>The calculator selects the global warming and absolute freshwater consumption results in Table 3. Both refer to one kilogram of boneless beef eaten in the modelled US system. The calculator scales them to the portions entered.</p>
+    </section>
+
+    <section class="record">
+      <h2>French foods, drinks and meals</h2>
+      <p>Source ADEME, données AGRIBALYSE® v3.2 (2025). The calculator uses the <a href="https://data.ademe.fr/datasets/agribalyse-31-synthese">simplified product indicators</a> under the <a href="https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf">Etalab Open Licence 2.0</a>. Product data updated 27 February 2025, metadata updated 30 June 2026, accessed 4 November 2026. See <a href="https://doc.agribalyse.fr/documentation-en/agribalyse-data/terms-of-use-and-environmental-communication">ADEME’s conditions for application reuse</a>.</p>
+      <p>Product names are translated and all quantities use kilograms, including liquids. Freshwater nutrient pollution is converted from kilograms to grams of phosphorus equivalent. Water scarcity and soil-quality impacts retain their source indicators. Each product record gives its AGB identifier, source row and data-quality rating. Underlying process inventories are outside this release.</p>
+      <p>The ten French meal scenarios use ADEME’s <a href="https://impactco2.fr/outils/alimentation">Impact CO₂ recipe estimates</a>, which cite AGRIBALYSE v3.2 data dated 15 January 2025. We translated the meal labels and scaled the published results by meal count. See the <a href="https://github.com/incubateur-ademe/impactco2/blob/3106130d308c2cf5605d409779b7b22b32221258/src/data/categories/repas.ts">source recipe records</a> and the <a href="notices/impactco2-MIT.txt">Impact CO₂ repository’s MIT notice, © 2022 Datagir</a>. ADEME has not endorsed this calculator.</p>
+    </section>
+
+    <section class="record">
+      <h2>UK diets</h2>
+      <p>Peter Scarborough, Michael Clark, Linda Cobiac, Keren Papier, Anika Knuppel, John Lynch, Richard Harrington, Tim Key and Marco Springmann, <a href="https://doi.org/10.1038/s43016-023-00795-w"><cite>Vegans, vegetarians, fish-eaters and meat-eaters in the UK show discrepant environmental impacts</cite></a> (2023). © The Author(s) 2023. <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+      <p>We selected aggregate diet-group estimates from <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10365988/">Tables 3 and 4</a>, shortened the category names, converted water volumes from cubic metres to litres and scaled the daily factors. The study’s estimates apply to groups standardised to 2,000 kcal per day.</p>
+    </section>
+
+    <section class="record">
+      <h2>Surface travel and flights</h2>
+      <p>UK Department for Energy Security and Net Zero, <a href="https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2025">UK greenhouse gas reporting conversion factors 2025</a>. © Crown copyright 2025. Contains public sector information licensed under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/">Open Government Licence v3.0</a>. We selected published factors, allocated the shared car across two passengers and used the international economy factor for the Paris–New York return trip.</p>
+      <p>© Commonwealth of Australia, Department of Finance, <a href="https://www.finance.gov.au/sites/default/files/2026-05/emissions-reporting-framework-2025-26.pdf"><cite>Emissions Reporting Framework 2025–26</cite></a>, Table 22. The selected Australian reporting factor is derived from UK DESNZ data. Adapted under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, subject to the <a href="https://www.finance.gov.au/about-us/copyright-notice">department’s exclusions</a>.</p>
+      <p>Airport coordinates for Hobart, Melbourne, Sydney, Paris CDG and New York JFK come from <a href="https://ourairports.com/data/">OurAirports’ public-domain data</a>, accessed 4 November 2026. We calculated great-circle distances using a spherical Earth radius of 6,371.0088 km and multiplied them by the relevant emissions factor. These estimates use airport distances rather than observed flight tracks.</p>
+    </section>
+
+    <section class="record">
+      <h2>Household water</h2>
+      <p>© Commonwealth of Australia, <a href="https://www.energy.gov.au/households/water-efficiency"><cite>Water efficiency</cite></a>, accessed 4 November 2026. Adapted under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, subject to the <a href="https://www.energy.gov.au/copyright">website’s copyright notice</a>. We use selected WELS band endpoints for showers and 6 kg washing machines, and illustrative full- and half-flush volumes. Results scale with minutes, loads or flushes.</p>
+    </section>
+
+    <section class="record">
+      <h2>Gemini text prompts</h2>
+      <p>Cooper Elsworth, Keguo Huang, David Patterson, Ian Schneider, Robert Sedivy, Savannah Goodman, Ben Townsend, Parthasarathy Ranganathan, Jeff Dean, Amin Vahdat, Ben Gomes and James Manyika (2025), <a href="https://arxiv.org/abs/2508.15734v1"><cite>Measuring the environmental impact of delivering AI at Google Scale</cite></a>. <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+      <p>We converted the May 2025 Gemini Apps median text-prompt estimates to kWh, kg CO₂e and litres of on-site cooling water, then scaled them to the request count. The paper’s scope is inference on the measured system.</p>
+    </section>
+
+    <section class="record">
+      <h2>Cotton T-shirt</h2>
+      <p>Gerald Feichtinger, Andrea Katharina Scherer and Wolfgang Posch (2026), <a href="https://doi.org/10.1007/s11367-026-02630-3"><cite>Reducing the environmental footprint of cotton T-shirt production through automation and reshoring</cite></a>, scenario ESM1 in the supplementary results. © The Author(s) 2026. <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. We use the published climate result for producing and distributing a 200 g T-shirt and summarise the scenario in our own words.</p>
+    </section>
+
+    <section class="record" id="electronics">
+      <h2>Electronic devices</h2>
+      <p>Contains information from <a href="https://github.com/Boavizta/environmental-footprint-data/tree/61323eb5c3bb63b0703e7a9c6456482ccbaac3a6">Boavizta’s Environmental Footprint Data</a>, accessed 4 November 2026. The adapted electronics database is made available under the <a href="https://opendatacommons.org/licenses/odbl/1-0/">Open Database License 1.0</a>. Its individual contents are available under the <a href="https://opendatacommons.org/licenses/dbcl/1-0/">Database Contents License 1.0</a>.</p>
+      <p><a href="data/electronics.js" download>Download the complete adapted electronics database (JavaScript)</a>. We selected eight Apple models, retained their reported carbon totals and added labels, scope notes and first-owner use periods. Each record preserves the original lifetime field and links the manufacturer’s report. The database licences apply to this subset. The reports remain with their publishers.</p>
+    </section>
+
+    <section class="record">
+      <h2>Labour evidence</h2>
+      <p><a href="https://directory.goodonyou.eco/brand/uniqlo">Good On You’s Uniqlo rating</a> is available directly from its publisher. The catalogue links to the rating under the publisher’s <a href="https://goodonyou.eco/terms-conditions/">website terms</a>.</p>
+      <p>The Fast Retailing entries summarise selected factual findings in our own words from <a href="https://media.business-humanrights.org/media/documents/KTC_2023_AF_Benchmark_Report.pdf">KnowTheChain’s 2023 apparel and footwear benchmark</a> and the company’s <a href="https://www.fastretailing.com/eng/sustainability/labor/list.html">production-partner disclosure</a>. These are company-level references. The reports, supplier list, artwork and logos remain with their respective rights holders.</p>
+    </section>
+  </main>
+</body>
+</html>

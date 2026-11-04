@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f8fb">
+  <meta name="description" content="Compare the footprint of everyday actions and lifestyle changes, and inspect the evidence behind each estimate.">
+  <title>Everyday impact</title>
+  <link rel="icon" href="mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a href="#main" class="skip">Skip to content</a>
+  <header class="masthead"><div class="shell mast-inner">
+    <a class="brand" href="#compare"><img src="mark.svg" width="34" height="34" alt="">Everyday impact</a>
+    <nav aria-label="Main navigation"><a href="#compare" aria-current="page">Compare</a><a href="#library">Factor library</a><a href="#labour">Labour evidence</a></nav>
+  </div></header>
+  <main id="main" class="shell">
+    <section id="compare" aria-labelledby="compare-title">
+      <div class="page-heading">
+        <div><h1 id="compare-title">Compare everyday actions</h1><p>Compare a full year of each activity. One-off actions count once, and recurring actions follow the schedule on each card.</p></div>
+      </div>
+      <div class="examples"><label for="examples">Examples</label><select id="examples"></select></div>
+      <div class="choices" id="choices" role="region" aria-label="Activity choices" tabindex="0"><button type="button" id="add-choice" class="add-choice" aria-label="Add choice" title="Add choice">+</button></div>
+      <section class="results" aria-labelledby="results-title">
+        <div class="results-heading"><div><h2 id="results-title">Estimated impact over 12 months</h2><p id="bar-guide">Bar lengths compare the size of the estimates within each row.</p></div><label class="hide-measures"><input type="checkbox" id="shared-only"> Only show measures available for all choices</label></div>
+        <div id="result-rows" class="result-scroll" role="region" aria-label="Impact measures" tabindex="0"></div>
+        <p id="electronics-credit" class="lib-intro" hidden>Electronics estimates use the <a href="credits.html#electronics">Boavizta dataset under ODbL 1.0</a>.</p>
+        <p id="measure-note" class="result-note"></p>
+      </section>
+    </section>
+    <section id="library" aria-labelledby="library-title" hidden>
+      <div class="page-heading"><div><h1 id="library-title">Factor library</h1><p id="library-count"></p></div></div>
+      <div class="library-filters"><label>Search factors<input type="search" id="search" placeholder="e.g. tofu, train or cotton"></label><label>Category<select id="filter-category"></select></label></div>
+      <div id="library-groups"></div>
+    </section>
+    <section id="labour" aria-labelledby="labour-title" hidden>
+      <div class="page-heading"><div><h1 id="labour-title">Labour evidence</h1><p>What the available sources establish about a brand and its supply chain.</p></div></div>
+      <div id="labour-records"></div>
+    </section>
+    <footer class="credits-footer"><a href="credits.html">Sources and licences</a></footer>
+    <noscript>Enable JavaScript to use the calculator and browse its factors.</noscript>
+  </main>
+</body>
+</html>
