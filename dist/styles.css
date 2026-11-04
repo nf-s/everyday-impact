@@ -147,6 +147,10 @@ summary { width: fit-content; font-size: 13px; font-weight: 500; padding: 4px 0;
 .comparison-horizon label { display: grid; gap: 5px; }
 .comparison-horizon input, .comparison-horizon select { width: 100%; min-height: 44px; }
 .comparison-horizon p { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
+.grid-scenario { margin: 0 0 16px; }
+.grid-scenario label { display: block; margin-bottom: 5px; }
+.grid-scenario select { max-width: 100%; min-height: 44px; }
+.grid-scenario p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
 .comparison-horizon #horizon-error { color: #a74444; }
 .measure-text { font-size: 13px; font-weight: 600; color: var(--ink); }
 .water-scope { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; line-height: 1.5; font-weight: 400; }
@@ -253,3 +257,14 @@ summary { width: fit-content; font-size: 13px; font-weight: 500; padding: 4px 0;
 .credits-page section { margin-top: 20px; }
 .credits-page h2 { margin-bottom: 8px; }
 .credits-page p + p { margin-top: 8px; }
+
+.choice-coverage { margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.coverage-summary { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; line-height: 1.5; }
+.coverage-summary p + p { margin-top: 6px; color: var(--muted); }
+.coverage-action + .coverage-action { margin-left: 8px; }
+.coverage-action { min-height: 44px; margin-top: 8px; padding: 7px 11px; }
+.picker-coverage-filter { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 5px 10px; border-bottom: 1px solid var(--border); font-size: 12px; }
+.picker-coverage-filter[hidden] { display: none; }
+.picker-coverage-filter input { flex: 0 0 auto; width: 17px; height: 17px; margin: 0; }
+.picker-option .picker-coverage { color: #405b7b; }
+.picker-option .picker-coverage-note { font-size: 11px; }

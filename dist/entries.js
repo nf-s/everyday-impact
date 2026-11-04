@@ -1,5 +1,6 @@
 import { groups } from './data/catalogue.js';
 import { defaultUsage } from './defaults.js';
+import { periods, validAmount } from './model.js';
 
 const byId = new Map(groups.map(group => [group.id, group]));
 const titleCase = text => text.charAt(0).toUpperCase() + text.slice(1);
@@ -11,7 +12,7 @@ export function defaultChoice(group, item) {
 
 export function itemName(group, item) {
   if (item.genericEvidence) return item.label;
-  if (group.id === 'ai-request') return 'Gemini text prompt';
+  if (group.id === 'ai-request') return 'AI chat · Gemini text prompt';
   if (group.id === 'uk-diets') return item.label + ' diet';
   if (group.id === 'au-grid-electricity') return 'Grid electricity · ' + item.label;
   if (group.id === 'au-pipeline-gas') return 'Mains gas · ' + item.label;
@@ -27,6 +28,19 @@ const foodSynonyms = [
 
 export function replacementGroup(group, item) {
   return item.replacementBasis || (item.sourceCode ? 'agribalyse' : group.id);
+}
+
+export function validCatalogueChoice(choice) {
+  if (!choice || typeof choice !== 'object') return false;
+  const group = byId.get(choice.group);
+  const before = group?.options.find(item => item.id === choice.before);
+  if (!before || !validAmount(choice.amount) || !validAmount(choice.times) ||
+      typeof choice.period !== 'string' || !Object.hasOwn(periods, choice.period) || (choice.period === 'once' && choice.times !== 1)) return false;
+  if (choice.kind !== 'swap') return ['footprint', 'skip'].includes(choice.kind) && choice.after === null && !choice.afterGroup;
+  const afterGroup = byId.get(choice.afterGroup || group.id);
+  const after = afterGroup?.options.find(item => item.id === choice.after);
+  return Boolean(after) && group.singular === afterGroup.singular &&
+    replacementGroup(group, before) === replacementGroup(afterGroup, after);
 }
 
 function genericHint(item) {

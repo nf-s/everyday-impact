@@ -1,0 +1,181 @@
+{
+  "started": "2026-11-04T06:36:32.397Z",
+  "mode": "real-workers-ai-local-planner",
+  "model": "@cf/qwen/qwen3-30b-a3b-fp8",
+  "sourceDigests": {
+    "scripts/question-benchmark-cases.json": "a11d2c122c6d1e44d64f87a08f7a9724e28914b002e4d2c79cf3766adb5f31d0",
+    "lib/question-planner.js": "87544da7d58dd63aa563e0cc981614d7a9f67203b32e12aa1f7ff7b156a62f5c",
+    "lib/question-schedule.js": "32a0d2215a17af2f1c71ff9b5d5553b9379dbe1eb584b16b3df99eecd7c05e0a"
+  },
+  "results": [
+    {
+      "id": "real-ai-fish",
+      "question": "compare AI with fish",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025"
+          },
+          {
+            "group": "food-portions",
+            "before": "fish-portion"
+          }
+        ]
+      },
+      "error": "invalid_output",
+      "message": "Unexpected response fields.",
+      "status": 200,
+      "raw": null,
+      "usage": {
+        "prompt_tokens": 93,
+        "completion_tokens": 220,
+        "total_tokens": 313,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 7.134535789489746
+      },
+      "durationMs": 2667,
+      "pass": false,
+      "issues": [
+        "Unexpected error: invalid_output"
+      ]
+    },
+    {
+      "id": "real-heavy-meat",
+      "question": "compare heavy AI usage with eating meat everyday",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025",
+            "amount": 100,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "food-portions",
+            "before": "meat-portion",
+            "amount": 0.15,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "error": "invalid_output",
+      "message": "Unexpected response fields.",
+      "status": 200,
+      "raw": null,
+      "usage": {
+        "prompt_tokens": 97,
+        "completion_tokens": 220,
+        "total_tokens": 317,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 7.153034210205078
+      },
+      "durationMs": 1802,
+      "pass": false,
+      "issues": [
+        "Unexpected error: invalid_output"
+      ]
+    },
+    {
+      "id": "website-kettle",
+      "question": "Build a website compared to running a kettle",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-web-app-development",
+            "before": "prototype-qwen3-coder-30b-b200",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "everyday-electricity",
+            "before": "kettle-three-minutes",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "error": "invalid_output",
+      "message": "Unexpected response fields.",
+      "status": 200,
+      "raw": null,
+      "usage": {
+        "prompt_tokens": 117,
+        "completion_tokens": 220,
+        "total_tokens": 337,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 7.24552583694458
+      },
+      "durationMs": 1858,
+      "pass": false,
+      "issues": [
+        "Unexpected error: invalid_output"
+      ]
+    },
+    {
+      "id": "named-grid",
+      "question": "10 kWh of Tasmanian electricity a day versus 10 kWh in Victoria daily, over a month",
+      "expected": {
+        "choices": [
+          {
+            "group": "au-grid-electricity",
+            "before": "tasmania",
+            "amount": 10,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "au-grid-electricity",
+            "before": "victoria",
+            "amount": 10,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 1,
+          "unit": "months"
+        }
+      },
+      "error": "invalid_output",
+      "message": "Unexpected response fields.",
+      "status": 200,
+      "raw": null,
+      "usage": {
+        "prompt_tokens": 111,
+        "completion_tokens": 220,
+        "total_tokens": 331,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 7.217778205871582
+      },
+      "durationMs": 2329,
+      "pass": false,
+      "issues": [
+        "Unexpected error: invalid_output"
+      ]
+    }
+  ],
+  "calls": 4,
+  "passed": 0,
+  "finished": "2026-11-04T06:36:41.058Z",
+  "totals": {
+    "cases": 4,
+    "passed": 0,
+    "calls": 4,
+    "promptTokens": 418,
+    "completionTokens": 880,
+    "neurons": 28.750874042510986
+  }
+}

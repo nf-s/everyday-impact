@@ -6,9 +6,11 @@
   <meta name="theme-color" content="#f6f8fb">
   <meta name="description" content="Compare the footprint of everyday actions and lifestyle changes, and inspect the evidence behind each estimate.">
   <title>Everyday impact</title>
+  <link rel="canonical" href="https://everyday-impact.pages.dev/">
   <link rel="icon" href="mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="question.css">
+  <link rel="stylesheet" href="share.css">
   <script type="module" src="app.js"></script>
 </head>
 <body>
@@ -28,11 +30,16 @@
           <textarea id="question-input" name="question" rows="2" maxlength="500" required aria-describedby="question-note question-status" placeholder="Compare two AI images a day with running a kettle once a day for a month"></textarea>
           <div class="question-actions"><button type="submit">Compare</button><button type="button" id="question-cancel" hidden>Cancel</button><button type="button" id="question-voice" aria-pressed="false" aria-describedby="question-voice-note" hidden>Dictate</button></div>
         </div>
-        <p id="question-note">Cloudflare AI matches your question to the catalogue. <span id="question-voice-note" hidden>Dictation may send audio to your browser’s speech service.</span></p>
+        <p id="question-note">Common requests use catalogue defaults. Cloudflare AI helps choose between possible matches. <span id="question-voice-note" hidden>Dictation may send audio to your browser’s speech service.</span></p>
         <p id="question-status" class="question-status" role="status" aria-live="polite" aria-atomic="true"></p>
         <p id="question-voice-status" class="question-status" role="status" aria-live="polite" aria-atomic="true"></p>
       </form>
       <div class="examples"><label for="examples">Examples</label><select id="examples"></select></div>
+      <div class="share-comparison">
+        <button type="button" id="share-comparison">Share comparison</button>
+        <p id="share-status" class="share-status" role="status" aria-live="polite" aria-atomic="true"></p>
+        <div id="share-fallback" class="share-fallback" hidden><label for="share-url">Comparison link<input id="share-url" type="url" readonly></label></div>
+      </div>
       <div class="choices" id="choices" role="region" aria-label="Activity choices" tabindex="0"><button type="button" id="add-choice" class="add-choice" aria-label="Add choice" title="Add choice">+</button></div>
       <section class="results" aria-labelledby="results-title">
         <div class="results-heading"><div><h2 id="results-title">Estimated impact over 12 months</h2><p id="bar-guide">Bar lengths compare the size of the estimates within each row.</p></div><label class="hide-measures"><input type="checkbox" id="shared-only"> Only show measures available for all choices</label></div>
@@ -42,6 +49,12 @@
           <p id="horizon-note">Recurring activities are averaged over the period. One-off actions count once.</p>
           <p id="horizon-error" role="status" hidden></p>
         </form>
+        <div id="grid-scenario" class="grid-scenario" hidden>
+          <label for="estimate-grid">Estimate emissions from electricity</label>
+          <select id="estimate-grid" aria-describedby="grid-scope"></select>
+          <p id="grid-scope">Choose an assumed grid to fill gaps in greenhouse gas estimates. This covers only the electricity counted by each source. The actual power supply can differ.</p>
+        </div>
+        <div id="coverage-summary" class="coverage-summary" role="status" aria-live="polite" aria-atomic="true"></div>
         <div id="result-rows" class="result-scroll" role="region" aria-label="Impact measures" tabindex="0"></div>
         <p id="electronics-credit" class="lib-intro" hidden>Electronics estimates use the <a href="credits.html#electronics">Boavizta dataset under ODbL 1.0</a>.</p>
         <p id="measure-note" class="result-note"></p>

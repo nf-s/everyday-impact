@@ -63,9 +63,9 @@ test('unmatched subjects and unmatched comparison clauses never silently fall ba
 });
 
 test('single inference accepts native and OpenAI envelopes and retains unrequested defaults', async () => {
-  const shortlist = shortlistQuestion('dryer');
+  const shortlist = shortlistQuestion('fish fingers');
   let calls = 0;
-  const result = await generatePlan('dryer', async request => {
+  const result = await generatePlan('fish fingers', async request => {
     calls++; assert.equal(request.messages.length, 2);
     return { choices: [{ message: { content: JSON.stringify(labels(shortlist)) }, finish_reason: 'stop' }], usage: { total_tokens: 123 } };
   });
@@ -96,7 +96,7 @@ test('lifestyle changes are excluded for ordinary comparisons and allowed for ex
   assert.equal(result.choices[0].kind, 'swap');
   assert.equal(result.choices[0].after, 'vegan');
   assert.equal(result.choices[1].kind, 'skip');
-  assert.equal(shortlistQuestion('Replace a beef meal with a vegan meal').clauses.length, 1);
+  assert.equal(shortlistQuestion('Replace a beef meal with a vegan meal').clauses.length, 2);
 });
 
 test('model cannot invent factors, quantities, slots or labels, or omit an activity', () => {
@@ -127,23 +127,69 @@ test('comparison connectors and trailing horizons do not lose activities or spli
 });
 
 
-test('unsupported replacements cannot silently become an unrelated meal preset or one footprint', async () => {
-  for (const question of [
-    'What if I replace beef with tofu?',
-    'Swap beef for tofu',
-    'Replace a smartphone with a kettle',
-    'What if I swapped a smartphone for a kettle?',
-    'Replace a beef meal with a vegan meal and swap a smartphone for a kettle'
-  ]) {
+test('compatible replacement paraphrases become one swap while incompatible evidence is rejected', async () => {
+  for (const question of ['What if I replace beef with tofu?', 'Swap beef for tofu', 'Tofu instead of beef']) {
+    const plan = await generatePlan(question, async () => { throw new Error('Unambiguous replacement must not invoke a model.'); });
+    assert.equal(plan.choices.length, 1);
+    assert.equal(plan.choices[0].kind, 'swap');
+    assert.equal(plan.choices[0].before, 'generic-food-beef-cooked');
+    assert.equal(plan.choices[0].after, 'generic-food-tofu');
+    assert.equal(plan.choices[0].amount, 0.15);
+    assert.equal(plan.choices[0].times, 2);
+  }
+  for (const question of ['Replace a smartphone with a kettle', 'What if I swapped a smartphone for a kettle?']) {
     let calls = 0;
     await assert.rejects(generatePlan(question, async () => { calls++; return {}; }), error => error.code === 'unsupported_replacement' && /Advanced/.test(error.message));
     assert.equal(calls, 0);
   }
   const supported = shortlistQuestion('Replace a beef meal with a vegan meal');
-  const label = select(supported, 0, item => item.label === 'Replace a beef meal with a vegan meal');
-  const plan = parsePlannerResponse({ A: label }, supported);
+  const plan = parsePlannerResponse(labels(supported), supported);
   assert.equal(plan.choices[0].kind, 'swap');
   assert.equal(plan.choices[0].before, 'beef');
   assert.equal(plan.choices[0].after, 'vegan');
-  assert.equal(shortlistQuestion('Compare beef and tofu').clauses.length, 2);
+});
+
+test('vague references are explicit assumptions, while richer food and unsupported domains are not pinned', async () => {
+  const generic = await generatePlan('compare AI with fish', async () => { throw new Error('No inference needed.'); });
+  assert.deepEqual(generic.choices.map(choice => choice.before), ['gemini-text-2025', 'fish-portion']);
+  assert.ok(generic.assumptions.some(text => text.includes('Gemini')));
+  assert.ok(generic.assumptions.some(text => text.includes('salmon, cod and tuna')));
+  for (const question of ['feed my pet fish', 'fish in an aquarium', 'AI quantum weather analysis']) await assert.rejects(generatePlan(question, async () => { throw new Error('Must not infer an unsupported domain.'); }), error => error.code === 'no_match');
+  for (const question of ['fish fingers', 'fish in puff pastry', 'fish diet']) assert.ok(!shortlistQuestion(question).candidates.some(item => item.choice.before === 'fish-portion'));
+});
+
+test('heavy AI is an editable count assumption and explicit counts always win', async () => {
+  const assumed = await generatePlan('compare heavy AI usage with eating meat everyday', async () => { throw new Error('No inference needed.'); });
+  assert.equal(assumed.choices[0].amount, 100);
+  assert.equal(assumed.choices[0].period, 'daily');
+  assert.equal(assumed.choices[1].amount, 0.15);
+  assert.equal(assumed.choices[1].period, 'daily');
+  assert.ok(assumed.assumptions.some(text => text.includes('100 text prompts')));
+  const explicit = await generatePlan('heavy AI usage, 7 prompts a day, with a 4-minute shower daily', async () => { throw new Error('No inference needed.'); });
+  assert.equal(explicit.choices[0].amount, 7);
+  assert.ok(!explicit.assumptions.some(text => text.includes('100 text prompts')));
+});
+
+
+test('conversational context and comparison delimiters preserve exactly the requested operating activities', async () => {
+  for (const [question, expected] of [
+    ['What uses more electricity, two hours of TV or running the dishwasher once?', ['generic-tv-55-inch', 'generic-dishwasher-14-place']],
+    ["I'd like to weigh up keeping a fridge running against keeping a chest freezer running, over two weeks.", ['generic-fridge-freezer', 'generic-chest-freezer']],
+    ['Can you show the impact of boiling a kettle once a day and heating food in a microwave once a day for a month?', ['kettle-three-minutes', 'microwave-three-minutes']],
+    ['How does eating fish every Friday stack up against 20 AI prompts a day?', ['fish-portion', 'gemini-text-2025']]
+  ]) {
+    const result = await generatePlan(question, async () => { throw new Error('Unambiguous activities should not infer.'); });
+    assert.deepEqual(result.choices.map(choice => choice.before), expected);
+  }
+  const countQuestion = await generatePlan('How many AI prompts?', async () => { throw new Error('Unambiguous reference.'); });
+  assert.equal(countQuestion.choices[0].amount, 5);
+  assert.ok(!countQuestion.assumptions.some(text => text.includes('100 text prompts')));
+});
+
+test('named unsupported operations and mixed compound actions fail rather than returning partial or unrelated items', async () => {
+  for (const [question, code] of [
+    ['Compare using Claude to summarize a 100-page PDF with a salmon lunch', 'no_match'],
+    ['How much impact does a ten-minute phone call have next to sending five emails?', 'no_match'],
+    ['Would skipping one Hobart to Melbourne return flight save more than replacing a beef meal with a vegan meal once a week?', 'unsupported_replacement']
+  ]) await assert.rejects(generatePlan(question, async () => { throw new Error('Unsupported requests should not infer.'); }), error => error.code === code);
 });

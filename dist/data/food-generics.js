@@ -132,3 +132,32 @@ export const genericFoodGroups = [{
   sources: agribalyseFoodGroups[0].sources,
   options: representatives.map(representative)
 }];
+
+// Equal cooked masses define two editable serving scenarios using the published French records.
+function portion(id, label, foods, codes) {
+  const members = codes.map(code => byCode.get(code).source);
+  const keys = Object.keys(members[0].values).filter(key => members.every(item => Number.isFinite(item.values[key])));
+  const selection = 'Equal cooked weights of ' + foods + '. The mix is illustrative. It does not represent national consumption.';
+  return {
+    id, label, generic: true, genericHint: 'Equal weights of ' + foods,
+    values: Object.fromEntries(keys.map(key => [key, members.reduce((sum, item) => sum + item.values[key], 0) / members.length])),
+    categoryPath: ['Food', 'Meat, fish and eggs', 'Portion scenarios'], replacementBasis: 'agribalyse',
+    note: selection + ' ' + members.map(item => item.note).join(' '),
+    qualityWarning: members.filter(item => item.qualityWarning).map(item => item.label + ' · ' + item.qualityWarning).join(' '),
+    sources: members.flatMap(item => item.sources),
+    defaultUsage: { amount: 0.15, times: 3, period: 'weekly', description: 'Assumes a 150 g cooked portion three times a week.' },
+    genericEvidence: { method: 'mean', selection,
+      contributors: members.map(item => ({ label: item.label + ' · AGB ' + item.sourceCode, values: item.values })) }
+  };
+}
+
+export const foodPortions = {
+  id: 'food-portions', label: 'Meat and fish portions', category: 'food',
+  unit: 'per kg of cooked food', singular: 'kg', plural: 'kg', defaultAmount: 0.15,
+  sourceNote: 'These scenarios average three cooked AGRIBALYSE 3.2 foods by mass. They cover the food portion only. ' + agribalyseFoodGroups[0].sourceNote,
+  sources: agribalyseFoodGroups[0].sources,
+  options: [
+    portion('fish-portion', 'Fish portion', 'salmon, cod and tuna', ['26038', '26025', '26041']),
+    portion('meat-portion', 'Meat portion', 'chicken, pork and beef', ['36018', '28101', '6200'])
+  ]
+};

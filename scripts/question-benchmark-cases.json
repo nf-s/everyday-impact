@@ -1,0 +1,450 @@
+[
+  {
+    "id": "real-ai-fish",
+    "question": "compare AI with fish",
+    "expected": {
+      "choices": [
+        {
+          "group": "ai-request",
+          "before": "gemini-text-2025"
+        },
+        {
+          "group": "food-portions",
+          "before": "fish-portion"
+        }
+      ]
+    }
+  },
+  {
+    "id": "real-heavy-meat",
+    "question": "compare heavy AI usage with eating meat everyday",
+    "expected": {
+      "choices": [
+        {
+          "group": "ai-request",
+          "before": "gemini-text-2025",
+          "amount": 100,
+          "period": "daily",
+          "times": 1
+        },
+        {
+          "group": "food-portions",
+          "before": "meat-portion",
+          "amount": 0.15,
+          "period": "daily",
+          "times": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "explicit-prompts-beef",
+    "question": "Could you compare five AI prompts per day with one steak per week for a year?",
+    "expected": {
+      "choices": [
+        {
+          "group": "ai-request",
+          "before": "gemini-text-2025",
+          "amount": 5,
+          "period": "daily",
+          "times": 1
+        },
+        {
+          "group": "food-products",
+          "before": "beef-steak",
+          "amount": 0.15,
+          "period": "weekly",
+          "times": 1
+        }
+      ],
+      "horizon": {
+        "amount": 1,
+        "unit": "years"
+      }
+    }
+  },
+  {
+    "id": "images-dryer",
+    "question": "Generate 3 images per day with AI and use a dryer twice a week",
+    "expected": {
+      "choices": [
+        {
+          "group": "ai-image-generation",
+          "before": "luccioni-2024-image-generation",
+          "amount": 3,
+          "period": "daily",
+          "times": 1
+        },
+        {
+          "group": "dryer-loads",
+          "before": "generic-dryer-8kg",
+          "amount": 1,
+          "period": "weekly",
+          "times": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "website-kettle",
+    "question": "Build a website compared to running a kettle",
+    "expected": {
+      "choices": [
+        {
+          "group": "ai-web-app-development",
+          "before": "prototype-qwen3-coder-30b-b200",
+          "amount": 1,
+          "period": "once",
+          "times": 1
+        },
+        {
+          "group": "everyday-electricity",
+          "before": "kettle-three-minutes",
+          "amount": 1,
+          "period": "once",
+          "times": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "train-car",
+    "question": "Compare driving a petrol car 50 km with taking a train 50 km",
+    "expected": {
+      "choices": [
+        {
+          "group": "surface-travel",
+          "before": "petrol-car-solo",
+          "amount": 50,
+          "period": "once",
+          "times": 1
+        },
+        {
+          "group": "surface-travel",
+          "before": "national-rail",
+          "amount": 50,
+          "period": "once",
+          "times": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "vegan-skip-flight",
+    "question": "What’s the impact of going vegan or skipping a flight, over 2 months?",
+    "expected": {
+      "choices": [
+        {
+          "group": "uk-diets",
+          "before": "low-meat",
+          "kind": "swap",
+          "after": "vegan"
+        },
+        {
+          "group": "return-flight",
+          "before": "paris-new-york-return",
+          "kind": "skip"
+        }
+      ],
+      "horizon": {
+        "amount": 2,
+        "unit": "months"
+      }
+    }
+  },
+  {
+    "id": "no-change-intent",
+    "question": "Compare train and vegan diet",
+    "expected": {
+      "choices": [
+        {
+          "group": "surface-travel",
+          "before": "national-rail",
+          "kind": "footprint"
+        },
+        {
+          "group": "uk-diets",
+          "before": "vegan",
+          "kind": "footprint"
+        }
+      ]
+    }
+  },
+  {
+    "id": "grams-food",
+    "question": "40g rolled oats daily versus 150g plain tofu daily for 10 days",
+    "expected": {
+      "choices": [
+        {
+          "group": "generic-foods",
+          "before": "generic-food-oats",
+          "amount": 0.04,
+          "period": "daily",
+          "times": 1
+        },
+        {
+          "group": "generic-foods",
+          "before": "generic-food-tofu",
+          "amount": 0.15,
+          "period": "daily",
+          "times": 1
+        }
+      ],
+      "horizon": {
+        "amount": 10,
+        "unit": "days"
+      }
+    }
+  },
+  {
+    "id": "kilo-paraphrase",
+    "question": "Compare half a kilo of beef per week to a quarter kilo of tofu weekly.",
+    "expected": {
+      "choices": [
+        {
+          "group": "generic-foods",
+          "before": "generic-food-beef-cooked",
+          "amount": 0.5,
+          "period": "weekly",
+          "times": 1
+        },
+        {
+          "group": "generic-foods",
+          "before": "generic-food-tofu",
+          "amount": 0.25,
+          "period": "weekly",
+          "times": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "morning-evening",
+    "question": "40 g of rolled oats every morning vs 150 g plain tofu every evening",
+    "expected": {
+      "choices": [
+        {
+          "group": "generic-foods",
+          "before": "generic-food-oats",
+          "amount": 0.04,
+          "period": "daily",
+          "times": 1
+        },
+        {
+          "group": "generic-foods",
+          "before": "generic-food-tofu",
+          "amount": 0.15,
+          "period": "daily",
+          "times": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "showers-laundry",
+    "question": "How do 6-minute showers each day stack up against four laundry loads per week, for 8 weeks?",
+    "expected": {
+      "choices": [
+        {
+          "group": "shower",
+          "before": "standard-7-5l",
+          "amount": 6,
+          "period": "daily",
+          "times": 1
+        },
+        {
+          "group": "washer-cycles",
+          "before": "generic-washer-9kg",
+          "amount": 4,
+          "period": "weekly",
+          "times": 1
+        }
+      ],
+      "horizon": {
+        "amount": 8,
+        "unit": "weeks"
+      }
+    }
+  },
+  {
+    "id": "named-grid",
+    "question": "10 kWh of Tasmanian electricity a day versus 10 kWh in Victoria daily, over a month",
+    "expected": {
+      "choices": [
+        {
+          "group": "au-grid-electricity",
+          "before": "tasmania",
+          "amount": 10,
+          "period": "daily",
+          "times": 1
+        },
+        {
+          "group": "au-grid-electricity",
+          "before": "victoria",
+          "amount": 10,
+          "period": "daily",
+          "times": 1
+        }
+      ],
+      "horizon": {
+        "amount": 1,
+        "unit": "months"
+      }
+    }
+  },
+  {
+    "id": "bathroom-paraphrase",
+    "question": "A six minute shower every other day compared with five toilet flushes a day",
+    "expected": {
+      "choices": [
+        {
+          "group": "shower",
+          "before": "standard-7-5l",
+          "amount": 6,
+          "period": "daily",
+          "times": 0.5
+        },
+        {
+          "group": "toilet-flush",
+          "before": "dual-flush-mix",
+          "amount": 5,
+          "period": "daily",
+          "times": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "shared-horizon",
+    "question": "AI image generation and boiling a kettle, over 2 weeks",
+    "expected": {
+      "choices": [
+        {
+          "group": "ai-image-generation",
+          "before": "luccioni-2024-image-generation"
+        },
+        {
+          "group": "everyday-electricity",
+          "before": "kettle-three-minutes"
+        }
+      ],
+      "horizon": {
+        "amount": 2,
+        "unit": "weeks"
+      }
+    }
+  },
+  {
+    "id": "heavy-explicit-count",
+    "question": "Compare heavy AI usage, 7 prompts a day, with a 4-minute shower daily",
+    "expected": {
+      "choices": [
+        {
+          "group": "ai-request",
+          "before": "gemini-text-2025",
+          "amount": 7,
+          "period": "daily",
+          "times": 1
+        },
+        {
+          "group": "shower",
+          "before": "standard-7-5l",
+          "amount": 4,
+          "period": "daily",
+          "times": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "unsupported-all",
+    "question": "What is the impact of unicorn rides?",
+    "expected": {
+      "error": "no_match"
+    }
+  },
+  {
+    "id": "unsupported-partial",
+    "question": "Compare beef and unicorn rides",
+    "expected": {
+      "error": "no_match"
+    }
+  },
+  {
+    "id": "unsupported-replacement",
+    "question": "What if I replace beef with tofu?",
+    "expected": {
+      "error": "unsupported_replacement"
+    }
+  },
+  {
+    "id": "incompatible-replacement",
+    "question": "Could I replace my smartphone with a kettle?",
+    "expected": {
+      "error": "unsupported_replacement"
+    }
+  },
+  {
+    "id": "unsupported-density",
+    "question": "Compare 200 ml of milk with 200 g of plain tofu",
+    "expected": {
+      "error": "unsupported_schedule"
+    }
+  },
+  {
+    "id": "supported-meal-change",
+    "question": "Replace a beef meal with a vegan meal",
+    "expected": {
+      "choices": [
+        {
+          "group": "french-meals",
+          "before": "beef",
+          "after": "vegan",
+          "kind": "swap"
+        }
+      ]
+    }
+  },
+  {
+    "id": "regional-gas",
+    "question": "20 MJ of Victorian mains gas daily and 10 kWh of Tasmanian electricity daily for 4 weeks",
+    "expected": {
+      "choices": [
+        {
+          "group": "au-pipeline-gas",
+          "before": "victoria",
+          "amount": 20,
+          "period": "daily",
+          "times": 1
+        },
+        {
+          "group": "au-grid-electricity",
+          "before": "tasmania",
+          "amount": 10,
+          "period": "daily",
+          "times": 1
+        }
+      ],
+      "horizon": {
+        "amount": 4,
+        "unit": "weeks"
+      }
+    }
+  },
+  {
+    "id": "boil-image-inverse",
+    "question": "Compare boiling a kettle with AI image generation",
+    "expected": {
+      "choices": [
+        {
+          "group": "everyday-electricity",
+          "before": "kettle-three-minutes"
+        },
+        {
+          "group": "ai-image-generation",
+          "before": "luccioni-2024-image-generation"
+        }
+      ]
+    }
+  }
+]

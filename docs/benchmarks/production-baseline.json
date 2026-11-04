@@ -1,0 +1,104 @@
+{
+  "started": "2026-11-04T06:32:44.079Z",
+  "mode": "endpoint",
+  "model": "production-configured",
+  "endpoint": "https://everyday-impact.pages.dev/api/compare",
+  "sourceDigests": {
+    "scripts/question-benchmark-cases.json": "a11d2c122c6d1e44d64f87a08f7a9724e28914b002e4d2c79cf3766adb5f31d0",
+    "lib/question-planner.js": "8216f66452a653660ae1e0bb139ef420f2766caf979b4d12c0333277f012c696",
+    "lib/question-schedule.js": "f240fcb7e981baa6772c74565f239c970314122dc000c7edb83dc8ff1ce3d5a9"
+  },
+  "results": [
+    {
+      "id": "real-ai-fish",
+      "question": "compare AI with fish",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025"
+          },
+          {
+            "group": "food-portions",
+            "before": "fish-portion"
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "ai-image-classification",
+            "before": "luccioni-2024-image-classification",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "agb-prepared",
+            "before": "agb-25151",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.3,
+            "period": "weekly",
+            "times": 3
+          }
+        ]
+      },
+      "status": 200,
+      "durationMs": 1796,
+      "pass": false,
+      "issues": [
+        "Choice 1 group: \"ai-image-classification\" vs \"ai-request\"",
+        "Choice 1 before: \"luccioni-2024-image-classification\" vs \"gemini-text-2025\"",
+        "Choice 2 group: \"agb-prepared\" vs \"food-portions\"",
+        "Choice 2 before: \"agb-25151\" vs \"fish-portion\""
+      ]
+    },
+    {
+      "id": "real-heavy-meat",
+      "question": "compare heavy AI usage with eating meat everyday",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025",
+            "amount": 100,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "food-portions",
+            "before": "meat-portion",
+            "amount": 0.15,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "actual": {
+        "error": "Could not match every activity. Try naming the items more specifically."
+      },
+      "error": "http_422",
+      "message": "Could not match every activity. Try naming the items more specifically.",
+      "status": 422,
+      "durationMs": 39,
+      "pass": false,
+      "issues": [
+        "Unexpected error: http_422"
+      ]
+    }
+  ],
+  "calls": 2,
+  "passed": 0,
+  "finished": "2026-11-04T06:32:45.918Z",
+  "totals": {
+    "cases": 2,
+    "passed": 0,
+    "calls": 2,
+    "promptTokens": 0,
+    "completionTokens": 0,
+    "neurons": 0
+  }
+}

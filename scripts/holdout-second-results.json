@@ -1,0 +1,381 @@
+{
+  "started": "2026-11-04T06:49:51.035Z",
+  "mode": "real-workers-ai-local-planner",
+  "model": "@cf/ibm-granite/granite-4.0-h-micro",
+  "options": {
+    "noThinking": false,
+    "forceInference": false
+  },
+  "sourceDigests": {
+    "scripts/holdout-second-cases.json": "87ba1706016f6479b674af9d7d0dc893747bae44fe199ad61317274efc6747d3",
+    "lib/question-planner.js": "ef7f00ac70406a26eca7f4b7a83a77b3e9e57feafe508729bb960dccab0fe440",
+    "lib/question-schedule.js": "1708fbb7f22e6a7bf626afe98fe1a5bae4c57f9b34195ae55bc35eb94267c935"
+  },
+  "results": [
+    {
+      "id": "fruit-daily",
+      "question": "Which has a bigger footprint, an apple a day or a banana a day?",
+      "expected": {
+        "choices": [
+          {
+            "group": "generic-foods",
+            "before": "generic-food-apple",
+            "amount": 0.15,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "generic-foods",
+            "before": "generic-food-banana",
+            "amount": 0.15,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "generic-foods",
+            "before": "generic-food-apple",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.15,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "generic-foods",
+            "before": "generic-food-banana",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.15,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Apple\",\n  \"B\": \"Banana\"\n}",
+      "usage": {
+        "prompt_tokens": 141,
+        "completion_tokens": 18,
+        "total_tokens": 159,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.4002240300178528
+      },
+      "durationMs": 1750,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "tv-dishwasher",
+      "question": "What uses more electricity, two hours of TV or running the dishwasher once?",
+      "expected": {
+        "choices": [
+          {
+            "group": "tv-viewing",
+            "before": "generic-tv-55-inch",
+            "amount": 2,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "dishwasher-cycles",
+            "before": "generic-dishwasher-14-place",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "au-grid-electricity",
+            "before": "nsw-act",
+            "after": null,
+            "kind": "footprint",
+            "amount": 10,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "tv-viewing",
+            "before": "generic-tv-55-inch",
+            "after": null,
+            "kind": "footprint",
+            "amount": 2,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "dishwasher-cycles",
+            "before": "generic-dishwasher-14-place",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Grid electricity · New South Wales and ACT\",\n  \"B\": \"Watching a 55-inch TV\",\n  \"C\": \"Dishwasher wash, 14 place settings\"\n}",
+      "usage": {
+        "prompt_tokens": 214,
+        "completion_tokens": 44,
+        "total_tokens": 258,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.7768818140029907
+      },
+      "durationMs": 1943,
+      "pass": false,
+      "issues": [
+        "Choice count 3 vs 2",
+        "Choice 1 group: \"au-grid-electricity\" vs \"tv-viewing\"",
+        "Choice 1 before: \"nsw-act\" vs \"generic-tv-55-inch\"",
+        "Choice 1 amount: 10 vs 2",
+        "Choice 2 group: \"tv-viewing\" vs \"dishwasher-cycles\"",
+        "Choice 2 before: \"generic-tv-55-inch\" vs \"generic-dishwasher-14-place\"",
+        "Choice 2 amount: 2 vs 1"
+      ]
+    },
+    {
+      "id": "tofu-lentils",
+      "question": "I eat 100 grams of plain tofu daily. How does that stack up against 100 grams of lentils daily?",
+      "expected": {
+        "choices": [
+          {
+            "group": "generic-foods",
+            "before": "generic-food-tofu",
+            "amount": 0.1,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "generic-foods",
+            "before": "generic-food-lentil",
+            "amount": 0.1,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "generic-foods",
+            "before": "generic-food-tofu",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.1,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "food-products",
+            "before": "other-pulses",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.1,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Tofu, plain\",\n  \"B\": \"Lentils, dried\"\n}",
+      "usage": {
+        "prompt_tokens": 137,
+        "completion_tokens": 25,
+        "total_tokens": 162,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.4651656746864319
+      },
+      "durationMs": 1681,
+      "pass": false,
+      "issues": [
+        "Choice 2 group: \"food-products\" vs \"generic-foods\"",
+        "Choice 2 before: \"other-pulses\" vs \"generic-food-lentil\""
+      ]
+    },
+    {
+      "id": "fridge-freezer",
+      "question": "I'd like to weigh up keeping a fridge running against keeping a chest freezer running, over two weeks.",
+      "expected": {
+        "choices": [
+          {
+            "group": "refrigeration",
+            "before": "generic-fridge-freezer",
+            "amount": 1,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "refrigeration",
+            "before": "generic-chest-freezer",
+            "amount": 1,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 2,
+          "unit": "weeks"
+        }
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "refrigeration",
+            "before": "generic-chest-freezer",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 2,
+          "unit": "weeks"
+        }
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Chest freezer\"\n}",
+      "usage": {
+        "prompt_tokens": 125,
+        "completion_tokens": 12,
+        "total_tokens": 137,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.3146074712276459
+      },
+      "durationMs": 905,
+      "pass": false,
+      "issues": [
+        "Choice count 1 vs 2",
+        "Choice 1 before: \"generic-chest-freezer\" vs \"generic-fridge-freezer\"",
+        "Choice 2 group: undefined vs \"refrigeration\"",
+        "Choice 2 before: undefined vs \"generic-chest-freezer\"",
+        "Choice 2 amount: undefined vs 1",
+        "Choice 2 period: undefined vs \"daily\"",
+        "Choice 2 times: undefined vs 1"
+      ]
+    },
+    {
+      "id": "kitchen-workflow",
+      "question": "Can you show the impact of boiling a kettle once a day and heating food in a microwave once a day for a month?",
+      "expected": {
+        "choices": [
+          {
+            "group": "everyday-electricity",
+            "before": "kettle-three-minutes",
+            "amount": 1,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "everyday-electricity",
+            "before": "microwave-three-minutes",
+            "amount": 1,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 1,
+          "unit": "months"
+        }
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "everyday-electricity",
+            "before": "kettle-three-minutes",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "agb-prepared",
+            "before": "agb-25415_1",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.3,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 1,
+          "unit": "months"
+        }
+      },
+      "status": 200,
+      "raw": "{\"A\": \"Run an electric kettle for three minutes\", \"B\": \"Cheeseburger, double, from fast foods restaurant\"}",
+      "usage": {
+        "prompt_tokens": 168,
+        "completion_tokens": 28,
+        "total_tokens": 196,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.5434321165084839
+      },
+      "durationMs": 1777,
+      "pass": false,
+      "issues": [
+        "Choice 2 group: \"agb-prepared\" vs \"everyday-electricity\"",
+        "Choice 2 before: \"agb-25415_1\" vs \"microwave-three-minutes\"",
+        "Choice 2 amount: 0.3 vs 1"
+      ]
+    },
+    {
+      "id": "unsupported-call-email",
+      "question": "How much impact does a ten-minute phone call have next to sending five emails?",
+      "expected": {
+        "error": "no_match"
+      },
+      "error": "unsupported_schedule",
+      "message": "Cannot convert minute to item for this activity.",
+      "status": 200,
+      "raw": "{\n  \"A\": \"Smartphone\"\n}",
+      "usage": {
+        "prompt_tokens": 99,
+        "completion_tokens": 11,
+        "total_tokens": 110,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.2643659710884094
+      },
+      "durationMs": 2137,
+      "pass": false,
+      "issues": [
+        "Expected error no_match, received unsupported_schedule"
+      ]
+    }
+  ],
+  "calls": 6,
+  "passed": 1,
+  "finished": "2026-11-04T06:50:01.235Z",
+  "totals": {
+    "cases": 6,
+    "passed": 1,
+    "calls": 6,
+    "promptTokens": 884,
+    "completionTokens": 138,
+    "neurons": 2.7646770775318146
+  }
+}

@@ -51,6 +51,13 @@ function showGenericBasis(section, group, item, key) {
     section.append(el('p', 'measure-dialog-scope', item.label + ' uses ' + evidence.contributors[0].label + ' as its reference.'));
     return;
   }
+  if (evidence.method === 'mean') {
+    const factors = evidence.contributors.map(member => raw(member.values[metricKey]));
+    section.append(el('p', 'measure-dialog-scope', evidence.selection),
+      el('p', 'measure-dialog-formula', '(' + factors.join(' + ') + ') ÷ ' + factors.length + ' = ' + raw(item.values[metricKey]) + ' ' + unit),
+      el('p', 'measure-dialog-scope', evidence.contributors.map(member => member.label).join(' · ')));
+    return;
+  }
   const sorted = [...evidence.contributors].sort((a, b) => a.values[metricKey] - b.values[metricKey]);
   const mid = Math.floor(sorted.length / 2);
   const middle = sorted.length % 2 ? raw(sorted[mid].values[metricKey]) :
@@ -80,8 +87,18 @@ function renderEntry(entry, key, unit, horizon) {
     const label = (choice.kind === 'footprint' ? 'Footprint' : 'Change') + ' over ' + horizonLabel(horizon);
     section.append(el('p', 'measure-dialog-result', label + ' · ' + formatEstimate(value, key, choice.kind, unit)));
     section.append(el('p', 'measure-dialog-formula', formula(entry, metricKey, horizon)));
-    showGenericBasis(section, group, before, key);
-    if (after && after !== before) showGenericBasis(section, afterGroup, after, key);
+    for (const [item, itemGroup] of [[before, group], [after, afterGroup]]) {
+      if (!item) continue;
+      const grid = key === 'carbon' ? item.gridEstimate : null;
+      if (grid) {
+        const scope = item.energyScope || itemGroup.energyScope || 'Electricity used by this activity';
+        section.append(el('p', 'measure-dialog-scope', 'Grid estimate for ' + item.label + ' · ' + grid.label + '. ' + scope + '.'),
+          el('p', 'measure-dialog-formula', raw(item.values.energy) + ' kWh per ' + itemGroup.singular + ' × ' + raw(grid.values.carbon) +
+            ' kg CO₂e/kWh = ' + raw(item.values.carbon) + ' kg CO₂e per ' + itemGroup.singular),
+          el('p', 'measure-dialog-scope', 'This assumes the selected Australian grid supplies the electricity counted in the activity. Other life-cycle emissions are outside this estimate. ' + grid.note));
+      }
+      showGenericBasis(section, itemGroup, item, grid ? 'energy' : key);
+    }
     if (after) section.append(el('p', 'measure-dialog-scope', 'The change is the original factor minus the replacement factor. A negative result means an increase.'));
     if (choice.kind === 'skip') section.append(el('p', 'measure-dialog-scope', 'Skipping assumes no replacement activity or purchase.'));
     if (key === 'water') section.append(el('p', 'measure-dialog-scope', metrics[metricKey].label + '. ' + metrics[metricKey].note));
@@ -105,7 +122,13 @@ function renderEntry(entry, key, unit, horizon) {
     if (afterGroup.sourceNote !== group.sourceNote) context.append(el('p', '', afterGroup.sourceNote));
     sources.push(...afterGroup.sources);
   }
-  section.append(context, sourceLinks(sources.filter(source => !source.measure || source.measure === key)));
+  const relevant = sources.filter(source => !source.measure || source.measure === key);
+  if (key === 'carbon') {
+    for (const [item, itemGroup] of [[before, group], [after, afterGroup]]) {
+      if (item?.gridEstimate) relevant.push(...item.gridEstimate.sources, ...[...itemGroup.sources, ...(item.sources || [])].filter(source => source.measure === 'energy'));
+    }
+  }
+  section.append(context, sourceLinks(relevant));
   if (group.id === 'apparel') {
     const labour = el('a', '', 'Labour evidence for Uniqlo');
     labour.href = '#labour';

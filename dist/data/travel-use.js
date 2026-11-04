@@ -307,6 +307,8 @@ export const travelUseGroups = [
     "options": [
       {
         "id": "gemini-text-2025",
+        "generic": true,
+        "genericHint": "Text chat reference · Gemini Apps median, May 2025",
         "energyScope": "Serving infrastructure and facility overhead",
         "label": "Gemini Apps · median text prompt · May 2025",
         "categoryPath": ["Digital", "AI", "Chat responses"],

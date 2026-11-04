@@ -29,8 +29,8 @@ test('invalid and unmatched requests never reserve or run inference', async () =
 
 test('inference fails closed at the budget limit and when storage is unavailable', async () => {
   const env = { USAGE: { prepare: () => ({ bind: () => ({ run: async () => ({ meta: { changes: 0 } }) }) }) } };
-  assert.equal((await onRequest({ request: submit('Gemini'), env })).status, 429);
-  assert.equal((await onRequest({ request: submit('Gemini'), env: {} })).status, 503);
+  assert.equal((await onRequest({ request: submit('fish fingers'), env })).status, 429);
+  assert.equal((await onRequest({ request: submit('fish fingers'), env: {} })).status, 503);
 });
 
 test('the shared budget counts at most 12 attempts per minute and 200 per UTC day', () => {
@@ -49,4 +49,22 @@ test('the shared budget counts at most 12 attempts per minute and 200 per UTC da
   } finally {
     db.close();
   }
+});
+
+
+test('deterministic references do not reserve inference, while ambiguous rows reserve exactly one call', async () => {
+  const fast = await onRequest({ request: submit('compare AI with fish'), env: {} });
+  assert.equal(fast.status, 200);
+  const fastBody = await fast.json();
+  assert.deepEqual(fastBody.choices.map(choice => choice.before), ['gemini-text-2025', 'fish-portion']);
+  assert.ok(fastBody.assumptions.every(text => typeof text === 'string' && text.length <= 220));
+  let reserved = 0, inferred = 0;
+  const env = {
+    USAGE: { prepare: () => ({ bind: () => ({ run: async () => { reserved++; return { meta: { changes: 1 } }; } }) }) },
+    AI: { run: async (model, input) => { inferred++; return { response: { A: input.response_format.json_schema.properties.A.enum[0] } }; } }
+  };
+  const ambiguous = await onRequest({ request: submit('fish fingers'), env });
+  assert.equal(ambiguous.status, 200);
+  assert.equal(reserved, 1);
+  assert.equal(inferred, 1);
 });

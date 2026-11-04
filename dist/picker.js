@@ -129,7 +129,13 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
   const more = el('button', 'picker-more', 'Show more');
   more.type = 'button';
   more.hidden = true;
-  panel.append(toolbar, status, list, more);
+  const coverageFilter = el('label', 'picker-coverage-filter');
+  const coverageCheckbox = el('input');
+  coverageCheckbox.type = 'checkbox';
+  coverageFilter.append(coverageCheckbox, 'Only items with a shared measure');
+  coverageFilter.hidden = typeof options.coverage !== 'function';
+  coverageCheckbox.addEventListener('change', () => render());
+  panel.append(toolbar, coverageFilter, status, list, more);
   search.append(input, panel);
   wrapper.append(label, search);
 
@@ -189,6 +195,9 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
   function render(keepPosition = false) {
     const scrollTop = keepPosition ? list.scrollTop : 0;
     if (!keepPosition) limit = pageSize;
+    const coverage = options.coverage?.();
+    coverageFilter.hidden = !coverage?.hasPeers;
+    if (coverageFilter.hidden) coverageCheckbox.checked = false;
     const query = input.value.trim();
     const searching = words(query).length > 0;
     back.hidden = !path.length && !specifics && !searching;
@@ -198,7 +207,7 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
       path.forEach((name, index) => breadcrumb.append(crumb(name, () => navigate(path.slice(0, index + 1)), !specifics && index === path.length - 1)));
       if (specifics) breadcrumb.append(crumb('Specific items', null, true));
     }
-    const indexed = indexFor(entries);
+    const indexed = coverageCheckbox.checked ? indexFor(entries).filter(item => coverage.describe(item.entry).keys.length) : indexFor(entries);
     const scoped = indexed.filter(item => path.every((name, index) => item.path[index] === name));
     const itemRow = item => ({ type: 'item', label: item.entry.label, detail: [item.entry.generic ? item.entry.genericHint : '', searching ? item.path.join(' · ') : '', item.entry.qualityLabel].filter(Boolean).join(' · '), entry: item.entry });
     if (searching) {
@@ -240,6 +249,12 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
       option.append(el('strong', '', row.label));
       if (row.detail) option.append(el('small', '', row.detail));
       if (row.entry?.evidenceLabel) option.append(evidenceBadge(row.entry.evidenceLabel));
+      if (row.entry && coverage) {
+        const hint = coverage.describe(row.entry);
+        const count = hint.keys.length + (coverage.hasPeers ? ' shared ' : ' available ') + (hint.keys.length === 1 ? 'measure' : 'measures');
+        option.append(el('small', 'picker-coverage', count + (hint.labels.length ? ' · ' + hint.labels.join(' · ') : '')));
+        if (hint.note) option.append(el('small', 'picker-coverage-note', hint.note));
+      }
       if (row.type !== 'item') option.append(el('span', 'picker-chevron', '›'));
       option.addEventListener('mousedown', event => event.preventDefault());
       option.addEventListener('click', () => activate(row));

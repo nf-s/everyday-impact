@@ -16,11 +16,11 @@ export async function onRequest({ request, env }) {
     return reply(result);
   } catch (error) {
     if (error instanceof RequestError) return reply({ error: error.message }, error.status);
-    if (error instanceof QuestionScheduleError) return reply({ error: error.message }, 422);
+    if (error instanceof QuestionScheduleError) return reply({ error: error.message, code: error.code }, 422);
     if (error instanceof PlannerError) {
       if (error.code === 'invalid_question') return reply({ error: error.message }, 400);
-      if (error.code === 'unsupported_replacement') return reply({ error: error.message }, 422);
-      if (error.code === 'no_match') return reply({ error: 'Could not match every activity. Try naming the items more specifically.' }, 422);
+      if (error.code === 'unsupported_replacement') return reply({ error: error.message, code: error.code }, 422);
+      if (error.code === 'no_match') return reply({ error: error.message, code: error.code }, 422);
       return reply({ error: 'The suggested comparison was incomplete. Try rephrasing the question.' }, 422);
     }
     return reply({ error: 'Question search is temporarily unavailable.' }, 503);

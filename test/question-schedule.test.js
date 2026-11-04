@@ -67,3 +67,14 @@ test('quantified activities without cadence happen once, with hyphenated duratio
   assert.throws(() => run('-5 g beef'), { code: 'unsupported_schedule' });
   assert.throws(() => run('2 pounds beef'), { code: 'unsupported_schedule' });
 });
+
+
+test('weekends count as one weekly event unless each day is explicitly requested', () => {
+  const selection = { choice: { group: 'test', before: 'one', kind: 'footprint', after: null, amount: 1, period: 'once', times: 1 }, singular: 'use', unit: 'use' };
+  const weekend = applyQuestionSchedule('use it every weekend', [{ ...selection, phrase: 'use it every weekend' }]);
+  assert.equal(weekend.choices[0].period, 'weekly');
+  assert.equal(weekend.choices[0].times, 1);
+  const days = applyQuestionSchedule('use it each day of the weekend', [{ ...selection, phrase: 'use it each day of the weekend' }]);
+  assert.equal(days.choices[0].period, 'weekly');
+  assert.equal(days.choices[0].times, 2);
+});

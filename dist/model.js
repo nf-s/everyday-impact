@@ -47,6 +47,15 @@ export function metricForOption(option, displayKey) {
   return supported.length === 1 ? supported[0] : null;
 }
 
+export function canEstimateGridCarbon(option) {
+  return Number.isFinite(option?.values?.energy) && !Number.isFinite(option.values.carbon);
+}
+
+export function withGridCarbon(option, grid) {
+  if (!grid || !canEstimateGridCarbon(option)) return option;
+  return { ...option, gridEstimate: grid, values: { ...option.values, carbon: option.values.energy * grid.values.carbon } };
+}
+
 export const periods = {
   once: { label: 'Just once', count: 1 },
   daily: { label: 'Every day', count: 365 },

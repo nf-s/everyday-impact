@@ -1,0 +1,250 @@
+{
+  "started": "2026-11-04T06:57:19.577Z",
+  "mode": "real-workers-ai-local-planner",
+  "model": "@cf/qwen/qwen3-30b-a3b-fp8",
+  "options": {
+    "noThinking": true,
+    "forceInference": true
+  },
+  "sourceDigests": {
+    "scripts/question-benchmark-cases.json": "a11d2c122c6d1e44d64f87a08f7a9724e28914b002e4d2c79cf3766adb5f31d0",
+    "lib/question-planner.js": "e886633da13b466400a7368c06ff8159cfe714b7e7fcb8128dfe80a101ff1f7f",
+    "lib/question-schedule.js": "811dfb6f1412f52b303b0397863205c582a659f9eaa60c74adb9e54671ac980a"
+  },
+  "results": [
+    {
+      "id": "real-ai-fish",
+      "question": "compare AI with fish",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025"
+          },
+          {
+            "group": "food-portions",
+            "before": "fish-portion"
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025",
+            "after": null,
+            "kind": "footprint",
+            "amount": 5,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "food-portions",
+            "before": "fish-portion",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.15,
+            "period": "weekly",
+            "times": 3
+          }
+        ],
+        "assumptions": [
+          "AI uses Gemini’s May 2025 median text prompt.",
+          "The fish portion is equal weights of cooked salmon, cod and tuna."
+        ]
+      },
+      "status": 200,
+      "raw": "{\"A\": \"AI chat · Gemini text prompt\", \"B\": \"Fish portion\"}",
+      "usage": {
+        "prompt_tokens": 100,
+        "completion_tokens": 23,
+        "total_tokens": 123,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 1.1633778810501099
+      },
+      "durationMs": 1087,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "real-heavy-meat",
+      "question": "compare heavy AI usage with eating meat everyday",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025",
+            "amount": 100,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "food-portions",
+            "before": "meat-portion",
+            "amount": 0.15,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "error": "no_match",
+      "message": "A requested activity did not match the supported catalogue.",
+      "status": 200,
+      "raw": "{\"A\": \"Unsupported\", \"B\": \"Meat portion\"}",
+      "usage": {
+        "prompt_tokens": 104,
+        "completion_tokens": 18,
+        "total_tokens": 122,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 1.0295023918151855
+      },
+      "durationMs": 478,
+      "pass": false,
+      "issues": [
+        "Unexpected error: no_match"
+      ]
+    },
+    {
+      "id": "website-kettle",
+      "question": "Build a website compared to running a kettle",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-web-app-development",
+            "before": "prototype-qwen3-coder-30b-b200",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "everyday-electricity",
+            "before": "kettle-three-minutes",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "ai-web-app-development",
+            "before": "prototype-qwen3-coder-30b-b200",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "everyday-electricity",
+            "before": "kettle-three-minutes",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          }
+        ],
+        "assumptions": [
+          "App development uses a prototype web-app workload. Choose a different coding scenario for a larger build."
+        ]
+      },
+      "status": 200,
+      "raw": "{\"A\": \"Build a web app · prototype draft · 20k tokens · 30B proxy\", \"B\": \"Run an electric kettle for three minutes\"}",
+      "usage": {
+        "prompt_tokens": 121,
+        "completion_tokens": 44,
+        "total_tokens": 165,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 1.9004642963409424
+      },
+      "durationMs": 739,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "named-grid",
+      "question": "10 kWh of Tasmanian electricity a day versus 10 kWh in Victoria daily, over a month",
+      "expected": {
+        "choices": [
+          {
+            "group": "au-grid-electricity",
+            "before": "tasmania",
+            "amount": 10,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "au-grid-electricity",
+            "before": "victoria",
+            "amount": 10,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 1,
+          "unit": "months"
+        }
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "au-grid-electricity",
+            "before": "tasmania",
+            "after": null,
+            "kind": "footprint",
+            "amount": 10,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "au-grid-electricity",
+            "before": "victoria",
+            "after": null,
+            "kind": "footprint",
+            "amount": 10,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 1,
+          "unit": "months"
+        }
+      },
+      "status": 200,
+      "raw": "{\"A\": \"Grid electricity · Tasmania\", \"B\": \"Grid electricity · Victoria\"}",
+      "usage": {
+        "prompt_tokens": 115,
+        "completion_tokens": 24,
+        "total_tokens": 139,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 1.2632213830947876
+      },
+      "durationMs": 605,
+      "pass": true,
+      "issues": []
+    }
+  ],
+  "calls": 4,
+  "passed": 3,
+  "finished": "2026-11-04T06:57:22.491Z",
+  "totals": {
+    "cases": 4,
+    "passed": 3,
+    "calls": 4,
+    "promptTokens": 440,
+    "completionTokens": 109,
+    "neurons": 5.356565952301025
+  }
+}

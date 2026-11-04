@@ -1,0 +1,6 @@
+{
+  "base": "question-benchmark-cases.json",
+  "overrides": {
+    "unsupported-replacement": {"choices": [{"group": "generic-foods", "before": "generic-food-beef-cooked", "kind": "swap", "after": "generic-food-tofu", "amount": 0.15, "period": "weekly", "times": 2}]}
+  }
+}

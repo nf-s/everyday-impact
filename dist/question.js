@@ -4,11 +4,13 @@ function comparisonPayload(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value) ||
       !Array.isArray(value.choices) || value.choices.length < 1 || value.choices.length > 6 ||
       value.choices.some(choice => !choice || typeof choice !== 'object' || Array.isArray(choice)) ||
+      (value.assumptions !== undefined && (!Array.isArray(value.assumptions) || value.assumptions.length > 6 ||
+        value.assumptions.some(note => typeof note !== 'string' || !note.trim() || note.length > 220))) ||
       (value.horizon !== undefined && (!value.horizon || typeof value.horizon !== 'object' || Array.isArray(value.horizon)))) {
     throw new Error('The comparison response was invalid. Your choices were kept.');
   }
   // The app validates catalogue IDs, quantities and the horizon before applying.
-  return { choices: value.choices, ...(value.horizon === undefined ? {} : { horizon: value.horizon }) };
+  return { choices: value.choices, ...(value.assumptions ? { assumptions: value.assumptions } : {}), ...(value.horizon === undefined ? {} : { horizon: value.horizon }) };
 }
 
 export function setupQuestionForm(onApply, options = {}) {
@@ -122,7 +124,8 @@ export function setupQuestionForm(onApply, options = {}) {
       cache.delete(question);
       cache.set(question, saved);
       if (cache.size > 8) cache.delete(cache.keys().next().value);
-      if (current === version) say('Comparison updated. Check the quantities and schedules below.');
+      if (current === version) say(saved.assumptions?.length ? 'Comparison updated. ' + saved.assumptions.join(' ') :
+        'Comparison updated. Check the quantities and schedules below.');
     } catch (error) {
       if (current !== version) return;
       const message = timedOut ? 'The request timed out. Try again.' :
@@ -204,6 +207,6 @@ export function setupQuestionForm(onApply, options = {}) {
   return { invalidate() {
     const pending = Boolean(active);
     invalidate();
-    if (pending) say('Comparison changed. Submit the question again to replace it.');
+    say(pending ? 'Comparison changed. Submit the question again to replace it.' : '');
   } };
 }

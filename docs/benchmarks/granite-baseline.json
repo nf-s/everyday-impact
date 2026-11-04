@@ -1,0 +1,1115 @@
+{
+  "started": "2026-11-04T06:32:35.975Z",
+  "mode": "real-workers-ai-local-planner",
+  "model": "@cf/ibm-granite/granite-4.0-h-micro",
+  "sourceDigests": {
+    "scripts/question-benchmark-cases.json": "a11d2c122c6d1e44d64f87a08f7a9724e28914b002e4d2c79cf3766adb5f31d0",
+    "lib/question-planner.js": "8216f66452a653660ae1e0bb139ef420f2766caf979b4d12c0333277f012c696",
+    "lib/question-schedule.js": "f240fcb7e981baa6772c74565f239c970314122dc000c7edb83dc8ff1ce3d5a9"
+  },
+  "results": [
+    {
+      "id": "real-ai-fish",
+      "question": "compare AI with fish",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025"
+          },
+          {
+            "group": "food-portions",
+            "before": "fish-portion"
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "ai-summarisation",
+            "before": "luccioni-2024-summarisation",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "food-portions",
+            "before": "fish-portion",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.15,
+            "period": "weekly",
+            "times": 3
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{ \"A\": \"Summarise text with AI\", \"B\": \"Fish portion\" }",
+      "usage": {
+        "prompt_tokens": 157,
+        "completion_tokens": 21,
+        "total_tokens": 178,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.4553655683994293
+      },
+      "durationMs": 2609,
+      "pass": false,
+      "issues": [
+        "Choice 1 group: \"ai-summarisation\" vs \"ai-request\"",
+        "Choice 1 before: \"luccioni-2024-summarisation\" vs \"gemini-text-2025\""
+      ]
+    },
+    {
+      "id": "real-heavy-meat",
+      "question": "compare heavy AI usage with eating meat everyday",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025",
+            "amount": 100,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "food-portions",
+            "before": "meat-portion",
+            "amount": 0.15,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "error": "no_match",
+      "message": "A requested activity did not match the catalogue. Name a supported food, journey, appliance or lifestyle change.",
+      "durationMs": 5,
+      "pass": false,
+      "issues": [
+        "Unexpected error: no_match"
+      ]
+    },
+    {
+      "id": "explicit-prompts-beef",
+      "question": "Could you compare five AI prompts per day with one steak per week for a year?",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025",
+            "amount": 5,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "food-products",
+            "before": "beef-steak",
+            "amount": 0.15,
+            "period": "weekly",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 1,
+          "unit": "years"
+        }
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025",
+            "after": null,
+            "kind": "footprint",
+            "amount": 5,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "agb-proteins",
+            "before": "agb-6253",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.15,
+            "period": "weekly",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 1,
+          "unit": "years"
+        }
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Gemini text prompt\",\n  \"B\": \"Beef, minced steak, 10% fat, cooked\"\n}",
+      "usage": {
+        "prompt_tokens": 174,
+        "completion_tokens": 31,
+        "total_tokens": 205,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.5831570625305176
+      },
+      "durationMs": 1980,
+      "pass": false,
+      "issues": [
+        "Choice 2 group: \"agb-proteins\" vs \"food-products\"",
+        "Choice 2 before: \"agb-6253\" vs \"beef-steak\""
+      ]
+    },
+    {
+      "id": "images-dryer",
+      "question": "Generate 3 images per day with AI and use a dryer twice a week",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-image-generation",
+            "before": "luccioni-2024-image-generation",
+            "amount": 3,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "dryer-loads",
+            "before": "generic-dryer-8kg",
+            "amount": 1,
+            "period": "weekly",
+            "times": 2
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "ai-image-generation",
+            "before": "luccioni-2024-image-generation",
+            "after": null,
+            "kind": "footprint",
+            "amount": 3,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "dryer-loads",
+            "before": "generic-dryer-8kg",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "weekly",
+            "times": 2
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Generate an image with AI\",\n  \"B\": \"Clothes dryer load, 8 kg\"\n}",
+      "usage": {
+        "prompt_tokens": 167,
+        "completion_tokens": 28,
+        "total_tokens": 195,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.5418905019760132
+      },
+      "durationMs": 2208,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "website-kettle",
+      "question": "Build a website compared to running a kettle",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-web-app-development",
+            "before": "prototype-qwen3-coder-30b-b200",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "everyday-electricity",
+            "before": "kettle-three-minutes",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "ai-web-app-development",
+            "before": "prototype-qwen3-coder-480b-fp8-b200",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "everyday-electricity",
+            "before": "kettle-three-minutes",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Build a web app · prototype draft · 20k tokens · 480B FP8 proxy\",\n  \"B\": \"Run an electric kettle for three minutes\"\n}",
+      "usage": {
+        "prompt_tokens": 157,
+        "completion_tokens": 41,
+        "total_tokens": 198,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.6585321426391602
+      },
+      "durationMs": 2658,
+      "pass": false,
+      "issues": [
+        "Choice 1 before: \"prototype-qwen3-coder-480b-fp8-b200\" vs \"prototype-qwen3-coder-30b-b200\""
+      ]
+    },
+    {
+      "id": "train-car",
+      "question": "Compare driving a petrol car 50 km with taking a train 50 km",
+      "expected": {
+        "choices": [
+          {
+            "group": "surface-travel",
+            "before": "petrol-car-solo",
+            "amount": 50,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "surface-travel",
+            "before": "national-rail",
+            "amount": 50,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "surface-travel",
+            "before": "petrol-car-solo",
+            "after": null,
+            "kind": "footprint",
+            "amount": 50,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "surface-travel",
+            "before": "national-rail",
+            "after": null,
+            "kind": "footprint",
+            "amount": 50,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Petrol car · 1 person\",\n  \"B\": \"National rail · UK average\"\n}",
+      "usage": {
+        "prompt_tokens": 126,
+        "completion_tokens": 27,
+        "total_tokens": 153,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.46852409839630127
+      },
+      "durationMs": 2180,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "vegan-skip-flight",
+      "question": "What’s the impact of going vegan or skipping a flight, over 2 months?",
+      "expected": {
+        "choices": [
+          {
+            "group": "uk-diets",
+            "before": "low-meat",
+            "kind": "swap",
+            "after": "vegan"
+          },
+          {
+            "group": "return-flight",
+            "before": "paris-new-york-return",
+            "kind": "skip"
+          }
+        ],
+        "horizon": {
+          "amount": 2,
+          "unit": "months"
+        }
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "uk-diets",
+            "before": "low-meat",
+            "after": "vegan",
+            "kind": "swap",
+            "amount": 1,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "return-flight",
+            "before": "paris-new-york-return",
+            "after": null,
+            "kind": "skip",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 2,
+          "unit": "months"
+        }
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Switch to a vegan diet\",\n  \"B\": \"Skip a Paris–New York return flight\"\n}",
+      "usage": {
+        "prompt_tokens": 187,
+        "completion_tokens": 28,
+        "total_tokens": 215,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.5727236866950989
+      },
+      "durationMs": 1555,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "no-change-intent",
+      "question": "Compare train and vegan diet",
+      "expected": {
+        "choices": [
+          {
+            "group": "surface-travel",
+            "before": "national-rail",
+            "kind": "footprint"
+          },
+          {
+            "group": "uk-diets",
+            "before": "vegan",
+            "kind": "footprint"
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "surface-travel",
+            "before": "national-rail",
+            "after": null,
+            "kind": "footprint",
+            "amount": 10,
+            "period": "weekly",
+            "times": 10
+          },
+          {
+            "group": "uk-diets",
+            "before": "vegan",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"National rail · UK average\",\n  \"B\": \"Vegan diet\"\n}",
+      "usage": {
+        "prompt_tokens": 115,
+        "completion_tokens": 23,
+        "total_tokens": 138,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.4109324812889099
+      },
+      "durationMs": 1851,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "grams-food",
+      "question": "40g rolled oats daily versus 150g plain tofu daily for 10 days",
+      "expected": {
+        "choices": [
+          {
+            "group": "generic-foods",
+            "before": "generic-food-oats",
+            "amount": 0.04,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "generic-foods",
+            "before": "generic-food-tofu",
+            "amount": 0.15,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 10,
+          "unit": "days"
+        }
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "food-products",
+            "before": "oatmeal",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.04,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "generic-foods",
+            "before": "generic-food-tofu",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.15,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 10,
+          "unit": "days"
+        }
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Rolled oats, dry\",\n  \"B\": \"Tofu, plain\"\n}",
+      "usage": {
+        "prompt_tokens": 113,
+        "completion_tokens": 25,
+        "total_tokens": 138,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.42816585302352905
+      },
+      "durationMs": 1600,
+      "pass": false,
+      "issues": [
+        "Choice 1 group: \"food-products\" vs \"generic-foods\"",
+        "Choice 1 before: \"oatmeal\" vs \"generic-food-oats\""
+      ]
+    },
+    {
+      "id": "kilo-paraphrase",
+      "question": "Compare half a kilo of beef per week to a quarter kilo of tofu weekly.",
+      "expected": {
+        "choices": [
+          {
+            "group": "generic-foods",
+            "before": "generic-food-beef-cooked",
+            "amount": 0.5,
+            "period": "weekly",
+            "times": 1
+          },
+          {
+            "group": "generic-foods",
+            "before": "generic-food-tofu",
+            "amount": 0.25,
+            "period": "weekly",
+            "times": 1
+          }
+        ]
+      },
+      "error": "unsupported_schedule",
+      "message": "Use one frequency for each activity.",
+      "status": 200,
+      "raw": "{\n  \"A\": \"Beef\"\n}",
+      "usage": {
+        "prompt_tokens": 120,
+        "completion_tokens": 11,
+        "total_tokens": 131,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.2967408299446106
+      },
+      "durationMs": 1023,
+      "pass": false,
+      "issues": [
+        "Unexpected error: unsupported_schedule"
+      ]
+    },
+    {
+      "id": "morning-evening",
+      "question": "40 g of rolled oats every morning vs 150 g plain tofu every evening",
+      "expected": {
+        "choices": [
+          {
+            "group": "generic-foods",
+            "before": "generic-food-oats",
+            "amount": 0.04,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "generic-foods",
+            "before": "generic-food-tofu",
+            "amount": 0.15,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "food-products",
+            "before": "oatmeal",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.04,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "generic-foods",
+            "before": "generic-food-tofu",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.15,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Rolled oats, dry\",\n  \"B\": \"Tofu, plain\"\n}",
+      "usage": {
+        "prompt_tokens": 112,
+        "completion_tokens": 25,
+        "total_tokens": 137,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.4266241788864136
+      },
+      "durationMs": 1738,
+      "pass": false,
+      "issues": [
+        "Choice 1 group: \"food-products\" vs \"generic-foods\"",
+        "Choice 1 before: \"oatmeal\" vs \"generic-food-oats\"",
+        "Choice 1 period: \"once\" vs \"daily\"",
+        "Choice 2 period: \"once\" vs \"daily\""
+      ]
+    },
+    {
+      "id": "showers-laundry",
+      "question": "How do 6-minute showers each day stack up against four laundry loads per week, for 8 weeks?",
+      "expected": {
+        "choices": [
+          {
+            "group": "shower",
+            "before": "standard-7-5l",
+            "amount": 6,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "washer-cycles",
+            "before": "generic-washer-9kg",
+            "amount": 4,
+            "period": "weekly",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 8,
+          "unit": "weeks"
+        }
+      },
+      "error": "unsupported_schedule",
+      "message": "Use one frequency for each activity.",
+      "status": 200,
+      "raw": "{\n  \"A\": \"6 kg washer · 3-star example · 88 L/load\"\n}",
+      "usage": {
+        "prompt_tokens": 158,
+        "completion_tokens": 22,
+        "total_tokens": 180,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.46706557273864746
+      },
+      "durationMs": 2079,
+      "pass": false,
+      "issues": [
+        "Unexpected error: unsupported_schedule"
+      ]
+    },
+    {
+      "id": "named-grid",
+      "question": "10 kWh of Tasmanian electricity a day versus 10 kWh in Victoria daily, over a month",
+      "expected": {
+        "choices": [
+          {
+            "group": "au-grid-electricity",
+            "before": "tasmania",
+            "amount": 10,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "au-grid-electricity",
+            "before": "victoria",
+            "amount": 10,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 1,
+          "unit": "months"
+        }
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "au-grid-electricity",
+            "before": "victoria",
+            "after": null,
+            "kind": "footprint",
+            "amount": 10,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "au-grid-electricity",
+            "before": "victoria",
+            "after": null,
+            "kind": "footprint",
+            "amount": 10,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 1,
+          "unit": "months"
+        }
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Grid electricity · Victoria\",\n  \"B\": \"Grid electricity · Victoria\"\n}",
+      "usage": {
+        "prompt_tokens": 165,
+        "completion_tokens": 23,
+        "total_tokens": 188,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.4880155026912689
+      },
+      "durationMs": 1996,
+      "pass": false,
+      "issues": [
+        "Choice 1 before: \"victoria\" vs \"tasmania\""
+      ]
+    },
+    {
+      "id": "bathroom-paraphrase",
+      "question": "A six minute shower every other day compared with five toilet flushes a day",
+      "expected": {
+        "choices": [
+          {
+            "group": "shower",
+            "before": "standard-7-5l",
+            "amount": 6,
+            "period": "daily",
+            "times": 0.5
+          },
+          {
+            "group": "toilet-flush",
+            "before": "dual-flush-mix",
+            "amount": 5,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "error": "no_match",
+      "message": "A requested activity did not match the supported catalogue.",
+      "status": 200,
+      "raw": "{\n  \"A\": \"Unsupported\",\n  \"B\": \"Dual-flush toilet\"\n}",
+      "usage": {
+        "prompt_tokens": 181,
+        "completion_tokens": 20,
+        "total_tokens": 201,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.4822070598602295
+      },
+      "durationMs": 1254,
+      "pass": false,
+      "issues": [
+        "Unexpected error: no_match"
+      ]
+    },
+    {
+      "id": "shared-horizon",
+      "question": "AI image generation and boiling a kettle, over 2 weeks",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-image-generation",
+            "before": "luccioni-2024-image-generation"
+          },
+          {
+            "group": "everyday-electricity",
+            "before": "kettle-three-minutes"
+          }
+        ],
+        "horizon": {
+          "amount": 2,
+          "unit": "weeks"
+        }
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "ai-image-generation",
+            "before": "luccioni-2024-image-generation",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "everyday-electricity",
+            "before": "kettle-three-minutes",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 2,
+          "unit": "weeks"
+        }
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Generate an image with AI\",\n  \"B\": \"Run an electric kettle for three minutes\"\n}",
+      "usage": {
+        "prompt_tokens": 103,
+        "completion_tokens": 27,
+        "total_tokens": 130,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.43306589126586914
+      },
+      "durationMs": 1482,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "heavy-explicit-count",
+      "question": "Compare heavy AI usage, 7 prompts a day, with a 4-minute shower daily",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025",
+            "amount": 7,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "shower",
+            "before": "standard-7-5l",
+            "amount": 4,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "error": "no_match",
+      "message": "A requested activity did not match the catalogue. Name a supported food, journey, appliance or lifestyle change.",
+      "durationMs": 2,
+      "pass": false,
+      "issues": [
+        "Unexpected error: no_match"
+      ]
+    },
+    {
+      "id": "unsupported-all",
+      "question": "What is the impact of unicorn rides?",
+      "expected": {
+        "error": "no_match"
+      },
+      "error": "no_match",
+      "message": "A requested activity did not match the catalogue. Name a supported food, journey, appliance or lifestyle change.",
+      "durationMs": 1,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "unsupported-partial",
+      "question": "Compare beef and unicorn rides",
+      "expected": {
+        "error": "no_match"
+      },
+      "error": "no_match",
+      "message": "A requested activity did not match the catalogue. Name a supported food, journey, appliance or lifestyle change.",
+      "durationMs": 2,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "unsupported-replacement",
+      "question": "What if I replace beef with tofu?",
+      "expected": {
+        "error": "unsupported_replacement"
+      },
+      "error": "unsupported_replacement",
+      "message": "This replacement is not supported here. Ask “compare X and Y”, then use Advanced to choose a compatible replacement, or choose a listed lifestyle change.",
+      "durationMs": 0,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "incompatible-replacement",
+      "question": "Could I replace my smartphone with a kettle?",
+      "expected": {
+        "error": "unsupported_replacement"
+      },
+      "error": "unsupported_replacement",
+      "message": "This replacement is not supported here. Ask “compare X and Y”, then use Advanced to choose a compatible replacement, or choose a listed lifestyle change.",
+      "durationMs": 0,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "unsupported-density",
+      "question": "Compare 200 ml of milk with 200 g of plain tofu",
+      "expected": {
+        "error": "unsupported_schedule"
+      },
+      "error": "unsupported_schedule",
+      "message": "Cannot convert ml to kg for this activity.",
+      "status": 200,
+      "raw": "{\n  \"A\": \"Milk\",\n  \"B\": \"Tofu, plain\"\n}",
+      "usage": {
+        "prompt_tokens": 133,
+        "completion_tokens": 22,
+        "total_tokens": 155,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.42852404713630676
+      },
+      "durationMs": 1315,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "supported-meal-change",
+      "question": "Replace a beef meal with a vegan meal",
+      "expected": {
+        "choices": [
+          {
+            "group": "french-meals",
+            "before": "beef",
+            "after": "vegan",
+            "kind": "swap"
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "french-meals",
+            "before": "beef",
+            "after": "vegan",
+            "kind": "swap",
+            "amount": 1,
+            "period": "weekly",
+            "times": 2
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Replace a beef meal with a vegan meal\"\n}",
+      "usage": {
+        "prompt_tokens": 95,
+        "completion_tokens": 17,
+        "total_tokens": 112,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.31914931535720825
+      },
+      "durationMs": 1148,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "regional-gas",
+      "question": "20 MJ of Victorian mains gas daily and 10 kWh of Tasmanian electricity daily for 4 weeks",
+      "expected": {
+        "choices": [
+          {
+            "group": "au-pipeline-gas",
+            "before": "victoria",
+            "amount": 20,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "au-grid-electricity",
+            "before": "tasmania",
+            "amount": 10,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 4,
+          "unit": "weeks"
+        }
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "au-pipeline-gas",
+            "before": "tas-victorian-proxy",
+            "after": null,
+            "kind": "footprint",
+            "amount": 20,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "au-grid-electricity",
+            "before": "victoria",
+            "after": null,
+            "kind": "footprint",
+            "amount": 10,
+            "period": "daily",
+            "times": 1
+          }
+        ],
+        "horizon": {
+          "amount": 4,
+          "unit": "weeks"
+        }
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Mains gas · Tasmania · Victorian upstream proxy\",\n  \"B\": \"Grid electricity · Victoria\"\n}",
+      "usage": {
+        "prompt_tokens": 159,
+        "completion_tokens": 28,
+        "total_tokens": 187,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.5295572280883789
+      },
+      "durationMs": 1579,
+      "pass": false,
+      "issues": [
+        "Choice 1 before: \"tas-victorian-proxy\" vs \"victoria\"",
+        "Choice 2 before: \"victoria\" vs \"tasmania\""
+      ]
+    },
+    {
+      "id": "boil-image-inverse",
+      "question": "Compare boiling a kettle with AI image generation",
+      "expected": {
+        "choices": [
+          {
+            "group": "everyday-electricity",
+            "before": "kettle-three-minutes"
+          },
+          {
+            "group": "ai-image-generation",
+            "before": "luccioni-2024-image-generation"
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "everyday-electricity",
+            "before": "kettle-three-minutes",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "ai-image-generation",
+            "before": "luccioni-2024-image-generation",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Run an electric kettle for three minutes\",\n  \"B\": \"Generate an image with AI\"\n}",
+      "usage": {
+        "prompt_tokens": 104,
+        "completion_tokens": 27,
+        "total_tokens": 131,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.4346075654029846
+      },
+      "durationMs": 1423,
+      "pass": true,
+      "issues": []
+    }
+  ],
+  "calls": 18,
+  "passed": 12,
+  "finished": "2026-11-04T06:33:07.675Z",
+  "totals": {
+    "cases": 24,
+    "passed": 12,
+    "calls": 18,
+    "promptTokens": 2526,
+    "completionTokens": 446,
+    "neurons": 8.424848586320877
+  }
+}

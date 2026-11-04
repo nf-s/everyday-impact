@@ -185,3 +185,17 @@ test('timeout restores controls without applying a late body', async () => {
   assert.match(f.status.textContent, /timed out/);
   assert.equal(f.submit.disabled, false);
 });
+
+test('short usage assumptions are displayed and cleared after manual edits', async () => {
+  const note = 'Heavy use assumes 100 Gemini text prompts per day.';
+  const ui = fixture(async () => ok({ ...plan, assumptions: [note] }), () => {});
+  ui.input.value = 'Compare heavy AI use with eating meat every day';
+  await ui.form.emit('submit');
+  assert.ok(ui.status.textContent.includes(note));
+  ui.api.invalidate();
+  assert.equal(ui.status.textContent, '');
+  const invalid = fixture(async () => ok({ ...plan, assumptions: [{ type: 'script' }] }), () => assert.fail('invalid assumption applied'));
+  invalid.input.value = 'Test question';
+  await invalid.form.emit('submit');
+  assert.match(invalid.status.textContent, /invalid/);
+});

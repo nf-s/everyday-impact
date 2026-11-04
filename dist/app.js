@@ -1,12 +1,15 @@
-import { defaultChoice, itemName, replacementGroup, replacementPools, searchEntries } from './entries.js';
+import { defaultChoice, validCatalogueChoice, itemName, replacementGroup, replacementPools, searchEntries } from './entries.js';
 import { groups } from './data/catalogue.js';
 import { labourEvidence } from './data/goods.js';
-import { metrics, comparisonMetrics, periods, defaultHorizon, validHorizon, horizonLabel, occurrencesFor, validAmount, metricForOption, estimateChoice, formatEstimate, number, raw } from './model.js';
+import { metrics, comparisonMetrics, periods, defaultHorizon, validHorizon, horizonLabel, occurrencesFor, validAmount, metricForOption, canEstimateGridCarbon, withGridCarbon, estimateChoice, formatEstimate, number, raw } from './model.js';
 import { defaultUsage } from './defaults.js';
 import { activityPicker } from './picker.js';
 import { el, sourceLinks, evidenceBadge } from './dom.js';
 import { showMeasureDetails } from './measure-dialog.js';
 import { setupQuestionForm } from './question.js';
+import { comparisonFromURL } from './share-state.js';
+import { setupSharing } from './share.js';
+import { choiceCoverage, sharedCoverage, coverageLabels, sharedWaterNote } from './coverage.js';
 
 const byId = new Map(groups.map(group => [group.id, group]));
 const categories = [...new Set(groups.map(group => group.category))];
@@ -54,7 +57,13 @@ const presets = [
 ];
 
 let choices = [];
+let sharing;
 let comparisonHorizon = { ...defaultHorizon };
+const gridGroup = byId.get('au-grid-electricity');
+const gridOptions = new Map(gridGroup.options.map(item => [item.id, item]));
+const gridSelect = view('estimate-grid');
+options(gridSelect, [['', 'Use source figures only'], ...gridGroup.options.map(item => [item.id, item.label])], '');
+gridSelect.addEventListener('change', () => renderAll(openAdvancedCards()));
 const addChoiceButton = view('add-choice');
 
 export function setComparisonHorizon(horizon) {
@@ -98,7 +107,8 @@ function selections(choice) {
   const before = group.options.find(option => option.id === choice.before);
   const afterGroup = choice.afterGroup ? byId.get(choice.afterGroup) : group;
   const after = choice.kind === 'swap' && choice.after ? afterGroup.options.find(option => option.id === choice.after) : null;
-  return { group, before, afterGroup, after };
+  const grid = gridOptions.get(gridSelect.value);
+  return { group, before: withGridCarbon(before, grid), afterGroup, after: withGridCarbon(after, grid) };
 }
 
 function options(select, items, value) {
@@ -153,6 +163,27 @@ function numericField(text, field, value, scale = 1) {
   return label;
 }
 
+function coverageEntry(choice) { return { choice, ...selections(choice) }; }
+
+function pickerCoverage(index, replacing = false) {
+  const peers = choices.flatMap((choice, peer) => choice && peer !== index ? [coverageEntry(choice)] : []);
+  const peerKeys = sharedCoverage(peers);
+  const cache = new Map();
+  return {
+    hasPeers: peers.length > 0,
+    describe(entry) {
+      if (cache.has(entry)) return cache.get(entry);
+      const choice = replacing ? { ...choices[index], after: entry.choice.before, afterGroup: entry.choice.group } : entry.choice;
+      const candidate = coverageEntry(choice);
+      const available = choiceCoverage(candidate);
+      const keys = peers.length ? peerKeys.filter(key => available.includes(key)) : available;
+      const hint = { keys, labels: coverageLabels(keys), note: sharedWaterNote([candidate, ...peers], keys) };
+      cache.set(entry, hint);
+      return hint;
+    }
+  };
+}
+
 function renderCard(index, keepOpen = false) {
   const choice = choices[index];
   const letter = choiceLetter(index);
@@ -163,7 +194,7 @@ function renderCard(index, keepOpen = false) {
     choices[index] = { ...entry.choice };
     setCustom();
     refreshChoice(index, 'picker');
-  });
+  }, { coverage: () => pickerCoverage(index) });
   if (choices.length > 1) {
     const remove = el('button', 'remove-choice', '×');
     remove.type = 'button';
@@ -177,6 +208,9 @@ function renderCard(index, keepOpen = false) {
   const { group, before, after } = selections(choice);
   const description = el('p', 'choice-context', usageText(choice));
   picker.append(description);
+  const coverage = el('p', 'choice-coverage');
+  coverage.dataset.coverageIndex = index;
+  picker.append(coverage);
   const evidenceLabels = new Set([before.evidenceLabel, after?.evidenceLabel].filter(Boolean));
   for (const label of evidenceLabels) picker.append(evidenceBadge(label));
   for (const item of [before, after]) {
@@ -203,7 +237,7 @@ function renderCard(index, keepOpen = false) {
       choice.afterGroup = entry.choice.group;
       setCustom();
       refreshChoice(index, 'replacement');
-    }, { label: 'Replacement for choice ' + letter }));
+    }, { label: 'Replacement for choice ' + letter, coverage: () => pickerCoverage(index, true) }));
   }
   advanced.append(fields);
   card.append(advanced);
@@ -237,6 +271,9 @@ function resultCell(row, entry, key, largest, unit) {
   fill.style.width = (largest ? Math.abs(value) / largest * 100 : 0) + '%';
   bar.append(fill);
   cell.append(bar);
+  if (key === 'carbon' && (before.gridEstimate || entry.after?.gridEstimate)) {
+    cell.append(el('small', 'metric-detail', 'Grid estimate · electricity only'));
+  }
   if (key === 'water') {
     cell.append(el('small', 'metric-detail water-scope', metrics[metricForOption(before, key)].label));
   }
@@ -245,12 +282,67 @@ function resultCell(row, entry, key, largest, unit) {
 }
 
 function renderResults() {
+  sharing?.invalidate();
   const horizonText = horizonLabel(comparisonHorizon);
   view('results-title').textContent = 'Estimated impact over ' + horizonText;
   const entries = choices.flatMap((choice, index) => choice ? [{
     choice, letter: choiceLetter(index), title: choiceTitle(choice), ...selections(choice)
   }] : []);
+  view('grid-scenario').hidden = !gridSelect.value && !entries.some(({ before, after }) =>
+    canEstimateGridCarbon(before) || canEstimateGridCarbon(after));
   const notes = [];
+  for (const label of document.querySelectorAll('[data-coverage-index]')) {
+    const choice = choices[Number(label.dataset.coverageIndex)];
+    const keys = choice ? choiceCoverage(coverageEntry(choice)) : [];
+    label.textContent = keys.length ? 'Measures · ' + coverageLabels(keys).join(' · ') : 'No measures available for this choice.';
+  }
+  const shared = sharedCoverage(entries);
+  const coverageSummary = view('coverage-summary');
+  coverageSummary.replaceChildren();
+  if (entries.length > 1) {
+    const available = new Set(entries.flatMap(choiceCoverage));
+    const allShared = shared.length > 0 && shared.length === available.size;
+    const count = shared.length + ' shared ' + (shared.length === 1 ? 'measure' : 'measures');
+    const summary = shared.length ? count + (allShared ? ' (all available)' : '') + ' · ' + coverageLabels(shared).join(' · ') : 'No measure is available for every choice.';
+    coverageSummary.append(el('p', '', summary));
+    if (!shared.length) {
+      const removable = entries.findLast(entry => sharedCoverage(entries.filter(other => other !== entry)).length);
+      if (removable) {
+        const change = el('button', 'coverage-action', 'Change choice ' + removable.letter);
+        change.type = 'button';
+        change.addEventListener('click', () => {
+          const input = view('activity-' + removable.letter);
+          input.focus();
+          input.click();
+        });
+        coverageSummary.append(change);
+      } else if (entries.length > 2) {
+        coverageSummary.append(el('p', '', 'Remove a choice to compare a smaller group.'));
+      }
+      const average = gridOptions.get('national');
+      if (!gridSelect.value && sharedCoverage(entries.map(entry => ({
+        ...entry, before: withGridCarbon(entry.before, average), after: withGridCarbon(entry.after, average)
+      }))).includes('carbon')) {
+        const bridge = el('button', 'coverage-action', 'Estimate electricity emissions using the Australian average');
+        bridge.type = 'button';
+        bridge.addEventListener('click', () => {
+          gridSelect.value = average.id;
+          gridSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          gridSelect.focus({ preventScroll: true });
+        });
+        coverageSummary.append(bridge);
+      }
+    }
+    const waterNote = sharedWaterNote(entries, shared);
+    if (waterNote) coverageSummary.append(el('p', '', waterNote));
+    if (!shared.length && view('shared-only').checked) {
+      const show = el('button', 'coverage-action', 'Show available measures');
+      show.type = 'button';
+      show.addEventListener('click', () => { view('shared-only').checked = false; renderResults(); view('shared-only').focus(); });
+      coverageSummary.append(show);
+    }
+  }
+  coverageSummary.hidden = entries.length < 2;
   const table = el('table', 'comparison-table');
   table.setAttribute('aria-labelledby', 'results-title');
   table.style.setProperty('--choice-count', entries.length);
@@ -276,13 +368,17 @@ function renderResults() {
   const sharedOnly = view('shared-only').checked;
   let missing = false;
   const waterScopes = new Set();
-  for (const [key, metric] of Object.entries(comparisonMetrics)) {
+  const rows = Object.entries(comparisonMetrics).map(([key, metric]) => {
     const measures = entries.map(entry => {
       const { before, after, choice } = entry;
       const value = choice.kind === 'swap' && !after ? null : estimateChoice(before, after, choice.amount, choice.period, choice.times, key, comparisonHorizon);
       return { ...entry, value };
     });
-    const hasMissing = measures.some(entry => entry.value === null);
+    return { key, metric, measures, count: measures.filter(entry => entry.value !== null).length };
+  });
+  rows.sort((a, b) => b.count - a.count);
+  for (const { key, metric, measures, count } of rows) {
+    const hasMissing = count < measures.length;
     if (!measures.length || (sharedOnly && hasMissing)) continue;
     if (hasMissing) missing = true;
     const largest = measures.reduce((max, entry) => Math.max(max, Math.abs(entry.value ?? 0)), 0);
@@ -372,20 +468,8 @@ function setCustom() {
   view('examples').value = 'custom';
 }
 
-function validPlannedChoice(choice) {
-  const group = byId.get(choice.group);
-  const before = group?.options.find(item => item.id === choice.before);
-  if (!before || !validAmount(choice.amount) || !validAmount(choice.times) ||
-      typeof choice.period !== 'string' || !Object.hasOwn(periods, choice.period) || (choice.period === 'once' && choice.times !== 1)) return false;
-  if (choice.kind !== 'swap') return ['footprint', 'skip'].includes(choice.kind) && choice.after === null && !choice.afterGroup;
-  const afterGroup = byId.get(choice.afterGroup || group.id);
-  const after = afterGroup?.options.find(item => item.id === choice.after);
-  return after && before !== after && group.singular === afterGroup.singular &&
-    replacementGroup(group, before) === replacementGroup(afterGroup, after);
-}
-
 const questionForm = setupQuestionForm(({ choices: plan, horizon }) => {
-  if (!plan.every(validPlannedChoice) || (horizon !== undefined && !validHorizon(horizon))) {
+  if (!plan.every(validCatalogueChoice) || (horizon !== undefined && !validHorizon(horizon))) {
     throw new Error('The suggested choices could not be applied.');
   }
   choices = plan.map(choice => ({ ...choice }));
@@ -395,6 +479,12 @@ const questionForm = setupQuestionForm(({ choices: plan, horizon }) => {
   view('choices').scrollLeft = 0;
   view('result-rows').scrollLeft = 0;
 });
+const shareGridIds = [...gridOptions.keys()];
+sharing = setupSharing(() => ({
+  choices, horizon: comparisonHorizon, sharedOnly: view('shared-only').checked,
+  grid: gridSelect.value
+}), validCatalogueChoice, shareGridIds);
+
 view('comparison-horizon').addEventListener('input', questionForm.invalidate);
 view('comparison-horizon').addEventListener('change', questionForm.invalidate);
 
@@ -532,5 +622,20 @@ function navigate() {
 }
 window.addEventListener('hashchange', navigate);
 const example = new URLSearchParams(location.search).get('example');
-loadPreset(presets.some(preset => preset.id === example) ? example : 'ai-beef');
+let sharedComparison;
+try {
+  sharedComparison = comparisonFromURL(location.href, validCatalogueChoice, shareGridIds);
+} catch {
+  sharing.showError('This comparison link could not be restored. The selected example is shown instead.');
+}
+if (sharedComparison) {
+  choices = sharedComparison.choices;
+  view('shared-only').checked = sharedComparison.sharedOnly;
+  gridSelect.value = sharedComparison.grid;
+  setComparisonHorizon(sharedComparison.horizon);
+  view('examples').value = 'custom';
+  renderAll();
+} else {
+  loadPreset(presets.some(preset => preset.id === example) ? example : 'ai-beef');
+}
 navigate();

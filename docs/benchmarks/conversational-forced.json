@@ -1,0 +1,364 @@
+{
+  "started": "2026-11-04T06:57:08.277Z",
+  "mode": "real-workers-ai-local-planner",
+  "model": "@cf/ibm-granite/granite-4.0-h-micro",
+  "options": {
+    "noThinking": false,
+    "forceInference": true
+  },
+  "sourceDigests": {
+    "scripts/question-regression-cases.json": "1095b637ba692669f145a4bf85bfee831f090fe192f4683a57730647100142c9",
+    "lib/question-planner.js": "e886633da13b466400a7368c06ff8159cfe714b7e7fcb8128dfe80a101ff1f7f",
+    "lib/question-schedule.js": "811dfb6f1412f52b303b0397863205c582a659f9eaa60c74adb9e54671ac980a"
+  },
+  "results": [
+    {
+      "id": "climate-intro",
+      "question": "What is worse for the climate, asking an AI a question or eating a piece of fish?",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "food-portions",
+            "before": "fish-portion",
+            "amount": 0.15,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "food-portions",
+            "before": "fish-portion",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.15,
+            "period": "once",
+            "times": 1
+          }
+        ],
+        "assumptions": [
+          "AI uses Gemini’s May 2025 median text prompt.",
+          "The fish portion is equal weights of cooked salmon, cod and tuna."
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"AI chat · Gemini text prompt\",\n  \"B\": \"Fish portion\"\n}",
+      "usage": {
+        "prompt_tokens": 103,
+        "completion_tokens": 24,
+        "total_tokens": 127,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.40259093046188354
+      },
+      "durationMs": 1745,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "friday-comparison",
+      "question": "How does eating fish every Friday stack up against 20 AI prompts a day?",
+      "expected": {
+        "choices": [
+          {
+            "group": "food-portions",
+            "before": "fish-portion",
+            "amount": 0.15,
+            "period": "weekly",
+            "times": 1
+          },
+          {
+            "group": "ai-request",
+            "before": "gemini-text-2025",
+            "amount": 20,
+            "period": "daily",
+            "times": 1
+          }
+        ]
+      },
+      "error": "no_match",
+      "message": "A requested activity did not match the supported catalogue.",
+      "status": 200,
+      "raw": "{ \"A\": \"Unsupported\", \"B\": \"AI chat · Gemini text prompt\" }",
+      "usage": {
+        "prompt_tokens": 105,
+        "completion_tokens": 20,
+        "total_tokens": 125,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.3650408983230591
+      },
+      "durationMs": 1515,
+      "pass": false,
+      "issues": [
+        "Unexpected error: no_match"
+      ]
+    },
+    {
+      "id": "with-ai-infinitive",
+      "question": "Compare writing a small app with AI to a steak dinner",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-web-app-development",
+            "before": "prototype-qwen3-coder-30b-b200"
+          },
+          {
+            "group": "food-products",
+            "before": "beef-steak"
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "ai-web-app-development",
+            "before": "prototype-qwen3-coder-30b-b200",
+            "after": null,
+            "kind": "footprint",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "food-products",
+            "before": "beef-steak",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.15,
+            "period": "once",
+            "times": 1
+          }
+        ],
+        "assumptions": [
+          "App development uses a prototype web-app workload. Choose a different coding scenario for a larger build."
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Build a web app · prototype draft · 20k tokens · 30B proxy\",\n  \"B\": \"Beef steak, grilled\"\n}",
+      "usage": {
+        "prompt_tokens": 116,
+        "completion_tokens": 37,
+        "total_tokens": 153,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.5546907782554626
+      },
+      "durationMs": 1849,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "unsupported-provider",
+      "question": "Compare using Claude to summarize a 100-page PDF with a salmon lunch",
+      "expected": {
+        "error": "no_match"
+      },
+      "error": "no_match",
+      "message": "That named AI service is not in the catalogue. Choose a listed reference activity.",
+      "durationMs": 0,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "drying-not-washing",
+      "question": "Compare a 7-minute shower each day with drying two loads of laundry per week.",
+      "expected": {
+        "choices": [
+          {
+            "group": "shower",
+            "before": "standard-7-5l",
+            "amount": 7,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "dryer-loads",
+            "before": "generic-dryer-8kg",
+            "amount": 2,
+            "period": "weekly",
+            "times": 1
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "shower",
+            "before": "standard-7-5l",
+            "after": null,
+            "kind": "footprint",
+            "amount": 7,
+            "period": "daily",
+            "times": 1
+          },
+          {
+            "group": "dryer-loads",
+            "before": "generic-dryer-8kg",
+            "after": null,
+            "kind": "footprint",
+            "amount": 2,
+            "period": "weekly",
+            "times": 1
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"4-star shower example · 7.5 L/min\",\n  \"B\": \"Clothes dryer load, 8 kg\"\n}",
+      "usage": {
+        "prompt_tokens": 119,
+        "completion_tokens": 34,
+        "total_tokens": 153,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.5288407802581787
+      },
+      "durationMs": 2041,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "named-token-tv",
+      "question": "Compare 400 output tokens from Qwen3-Coder30B with 15 minutes of television, just once.",
+      "expected": {
+        "choices": [
+          {
+            "group": "ai-code-generation",
+            "before": "qwen3-coder-30b-b200",
+            "amount": 400,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "tv-viewing",
+            "before": "generic-tv-55-inch",
+            "amount": 0.25,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "actual": {
+        "choices": [
+          {
+            "group": "ai-code-generation",
+            "before": "qwen3-coder-30b-b200",
+            "after": null,
+            "kind": "footprint",
+            "amount": 400,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "tv-viewing",
+            "before": "generic-tv-55-inch",
+            "after": null,
+            "kind": "footprint",
+            "amount": 0.25,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "status": 200,
+      "raw": "{\n  \"A\": \"Generate code · Qwen3-Coder 30B · 1 B200\",\n  \"B\": \"Watching a 55-inch TV\"\n}",
+      "usage": {
+        "prompt_tokens": 125,
+        "completion_tokens": 37,
+        "total_tokens": 162,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.5685657262802124
+      },
+      "durationMs": 1683,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "compound-change-safe",
+      "question": "Would skipping one Hobart to Melbourne return flight save more than replacing a beef meal with a vegan meal once a week?",
+      "expected": {
+        "error": "unsupported_replacement"
+      },
+      "error": "unsupported_replacement",
+      "message": "Compare this replacement and the other activity separately, or add the changes directly in the calculator.",
+      "durationMs": 5,
+      "pass": true,
+      "issues": []
+    },
+    {
+      "id": "measurement-intro",
+      "question": "What uses more electricity, two hours of TV or running the dishwasher once?",
+      "expected": {
+        "choices": [
+          {
+            "group": "tv-viewing",
+            "before": "generic-tv-55-inch",
+            "amount": 2,
+            "period": "once",
+            "times": 1
+          },
+          {
+            "group": "dishwasher-cycles",
+            "before": "generic-dishwasher-14-place",
+            "amount": 1,
+            "period": "once",
+            "times": 1
+          }
+        ]
+      },
+      "error": "no_match",
+      "message": "A requested activity did not match the supported catalogue.",
+      "status": 200,
+      "raw": "{\n  \"A\": \"Unsupported\",\n  \"B\": \"Dishwasher wash, 14 place settings\"\n}",
+      "usage": {
+        "prompt_tokens": 107,
+        "completion_tokens": 25,
+        "total_tokens": 132,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 0.41891586780548096
+      },
+      "durationMs": 1529,
+      "pass": false,
+      "issues": [
+        "Unexpected error: no_match"
+      ]
+    }
+  ],
+  "calls": 6,
+  "passed": 6,
+  "finished": "2026-11-04T06:57:18.652Z",
+  "totals": {
+    "cases": 8,
+    "passed": 6,
+    "calls": 6,
+    "promptTokens": 675,
+    "completionTokens": 177,
+    "neurons": 2.8386449813842773
+  }
+}
