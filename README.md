@@ -1,5 +1,7 @@
 # Everyday impact
 
+[Open the calculator](https://everyday-impact.pages.dev/) · [Read the data credits](https://everyday-impact.pages.dev/credits.html)
+
 Search for items, activities or lifestyle changes to compare their estimates over 12 months. Use the plus button to add another choice. The suggested quantities and frequencies are illustrative and can be edited in Advanced. Bars in each measure row show the magnitude relative to the largest available estimate in that row. Open Details beside a measure to see each choice’s calculation, units, assumptions and sources. The library includes an independently sourced section on labour conditions and disclosures.
 
 Run `npm start` with Python 3 installed, then open http://127.0.0.1:8000. Run `npm test` with Node.js 20 or later. The files under `dist/` are the complete static site.
