@@ -85,7 +85,9 @@ function renderEntry(entry, key, unit, horizon) {
   } else {
     const metricKey = metricForOption(before, key);
     const label = (choice.kind === 'footprint' ? 'Footprint' : 'Change') + ' over ' + horizonLabel(horizon);
-    section.append(el('p', 'measure-dialog-result', label + ' · ' + formatEstimate(value, key, choice.kind, unit)));
+    const result = el('p', 'measure-dialog-result', label + ' · ');
+    result.append(el('span', 'number', formatEstimate(value, key, choice.kind, unit)));
+    section.append(result);
     section.append(el('p', 'measure-dialog-formula', formula(entry, metricKey, horizon)));
     for (const [item, itemGroup] of [[before, group], [after, afterGroup]]) {
       if (!item) continue;

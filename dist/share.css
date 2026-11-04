@@ -1,9 +1,15 @@
-.share-comparison { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 16px; min-width: 0; }
-.share-comparison > button { min-height: 40px; padding: 8px 12px; }
-.share-comparison > button:focus-visible, .share-comparison input:focus-visible { outline: 2px solid #47698d; outline-offset: 3px; }
-.share-status { margin: 0; color: var(--muted); font-size: 12px; }
+.comparison-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-bottom: 10px; }
+.choice-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.choice-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 36px; padding: 6px 10px; font-size: 13px; }
+.choice-actions button span { font-size: 17px; line-height: 1; }
+.share-status { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 12px; }
+.share-status:empty { display: none; }
 .share-status[data-error="true"] { color: #913737; }
 .share-fallback { flex-basis: 100%; min-width: 0; font-size: 12px; color: var(--muted); }
 .share-fallback label { display: block; }
 .share-fallback input { display: block; width: 100%; margin-top: 5px; font-size: 13px; }
-@media (max-width: 700px) { .share-comparison > button { min-height: 44px; } .share-fallback input { font-size: 16px; } }
+@media (max-width: 700px) {
+  .examples { flex: 1 1 260px; }
+  .choice-actions button { min-height: 44px; }
+  .share-fallback input { font-size: 16px; }
+}

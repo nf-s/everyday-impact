@@ -65,6 +65,7 @@ const gridSelect = view('estimate-grid');
 options(gridSelect, [['', 'Use source figures only'], ...gridGroup.options.map(item => [item.id, item.label])], '');
 gridSelect.addEventListener('change', () => renderAll(openAdvancedCards()));
 const addChoiceButton = view('add-choice');
+view('question-panel').open = window.matchMedia('(min-width: 701px)').matches;
 
 export function setComparisonHorizon(horizon) {
   if (!validHorizon(horizon)) return false;
@@ -359,7 +360,9 @@ function renderResults() {
       const quantity = choice.amount * choice.times * occurrences;
       const unit = quantity === 1 ? group.singular : group.plural;
       const quantityText = Number.isInteger(occurrences) ? raw(quantity) : '≈ ' + number(quantity);
-      header.append(el('small', 'column-quantity', quantityText + ' ' + unit + ' in ' + horizonText));
+      const summary = el('small', 'column-quantity');
+      summary.append(el('span', 'number', quantityText), ' ' + unit + ' in ' + horizonText);
+      header.append(summary);
     }
     headingRow.append(header);
   }
@@ -431,7 +434,7 @@ function openAdvancedCards() {
 
 function renderAll(open = []) {
   const cards = choices.map((_, index) => renderCard(index, open[index]));
-  view('choices').replaceChildren(...cards, addChoiceButton);
+  view('choices').replaceChildren(...cards);
   renderResults();
 }
 
@@ -440,7 +443,9 @@ addChoiceButton.addEventListener('click', () => {
   choices.push(null);
   setCustom();
   renderAll(open);
-  view('activity-' + choiceLetter(choices.length - 1)).focus();
+  const trigger = view('activity-' + choiceLetter(choices.length - 1));
+  trigger.focus();
+  trigger.click();
 });
 
 function removeChoice(index) {
@@ -459,7 +464,6 @@ function loadPreset(id) {
   choices = preset.choices.map(item => ({ ...item, kind: preset.mode === 'footprints' ? 'footprint' : item.after ? 'swap' : 'skip' }));
   view('examples').value = id;
   renderAll();
-  view('choices').scrollLeft = 0;
   view('result-rows').scrollLeft = 0;
 }
 
@@ -476,7 +480,6 @@ const questionForm = setupQuestionForm(({ choices: plan, horizon }) => {
   if (horizon) setComparisonHorizon(horizon);
   view('examples').value = 'custom';
   renderAll();
-  view('choices').scrollLeft = 0;
   view('result-rows').scrollLeft = 0;
 });
 const shareGridIds = [...gridOptions.keys()];
@@ -488,15 +491,14 @@ sharing = setupSharing(() => ({
 view('comparison-horizon').addEventListener('input', questionForm.invalidate);
 view('comparison-horizon').addEventListener('change', questionForm.invalidate);
 
-for (const region of [view('choices'), view('result-rows')]) {
-  region.addEventListener('keydown', event => {
-    if (event.target !== region || region.scrollWidth <= region.clientWidth || event.metaKey || event.altKey || event.ctrlKey) return;
-    const distance = { ArrowLeft: -48, ArrowRight: 48, Home: -region.scrollWidth, End: region.scrollWidth }[event.key];
-    if (!distance) return;
-    event.preventDefault();
-    region.scrollLeft += distance;
-  });
-}
+view('result-rows').addEventListener('keydown', event => {
+  const region = event.currentTarget;
+  if (event.target !== region || region.scrollWidth <= region.clientWidth || event.metaKey || event.altKey || event.ctrlKey) return;
+  const distance = { ArrowLeft: -48, ArrowRight: 48, Home: -region.scrollWidth, End: region.scrollWidth }[event.key];
+  if (!distance) return;
+  event.preventDefault();
+  region.scrollLeft += distance;
+});
 
 view('choices').addEventListener('input', event => {
   const input = event.target;
@@ -544,7 +546,9 @@ function factorRecord(group, item) {
   if (item.evidenceLabel) record.append(evidenceBadge(item.evidenceLabel));
   if (item.reasoning) record.append(el('p', '', item.reasoning));
   for (const [key, value] of Object.entries(item.values)) {
-    record.append(el('p', '', metrics[key].label + ' · ' + raw(value) + ' ' + metrics[key].unit));
+    const factor = el('p', '', metrics[key].label + ' · ');
+    factor.append(el('span', 'number', raw(value)), ' ' + metrics[key].unit);
+    record.append(factor);
   }
   if (item.note) record.append(el('p', '', item.note));
   if (item.sources?.length) record.append(sourceLinks(item.sources));

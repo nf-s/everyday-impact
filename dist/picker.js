@@ -40,54 +40,18 @@ function rankedMatches(indexed, query) {
   }).filter(Boolean).sort((a, b) => b.score - a.score || a.index - b.index).map(result => result.item);
 }
 
-let openPicker;
-
-function positionOpenPicker(reanchor = false) {
-  if (!openPicker) return;
-  const { input, panel, hide } = openPicker;
-  if (!input.isConnected) {
-    hide();
-    return;
-  }
-  let anchor = input.getBoundingClientRect();
-  const strip = input.closest('.choices')?.getBoundingClientRect();
+function sizeOpenPicker() {
+  const panel = document.querySelector('.picker-panel[open]');
   const viewport = window.visualViewport;
-  const left = viewport?.offsetLeft ?? 0;
-  const top = viewport?.offsetTop ?? 0;
-  const width = viewport?.width ?? document.documentElement.clientWidth;
-  const height = viewport?.height ?? window.innerHeight;
-  if (strip && (anchor.right <= strip.left || anchor.left >= strip.right)) {
-    hide();
-    return;
-  }
-  const gap = 8;
-  if (reanchor && (anchor.top < top || anchor.bottom > top + height || Math.max(top + height - anchor.bottom, anchor.top - top) < 224)) {
-    window.scrollBy({ top: anchor.top - top - gap, behavior: 'instant' });
-    anchor = input.getBoundingClientRect();
-  }
-  if (anchor.bottom <= top || anchor.top >= top + height) {
-    hide();
-    return;
-  }
-  const below = top + height - anchor.bottom - gap * 2;
-  const above = anchor.top - top - gap * 2;
-  const placeAbove = below < 200 && above > below;
-  const panelWidth = Math.min(Math.max(anchor.width, 350), width - gap * 2);
-  panel.style.width = panelWidth + 'px';
-  panel.style.maxHeight = Math.max(80, placeAbove ? above : below) + 'px';
-  panel.style.left = Math.max(left + gap, Math.min(anchor.left, left + width - panelWidth - gap)) + 'px';
-  panel.style.top = (placeAbove ? anchor.top - panel.offsetHeight - gap : anchor.bottom + gap) + 'px';
+  if (!panel || !viewport) return;
+  panel.style.setProperty('--picker-height', viewport.height + 'px');
+  panel.style.setProperty('--picker-width', viewport.width + 'px');
+  panel.style.setProperty('--picker-top', viewport.offsetTop + 'px');
+  panel.style.setProperty('--picker-left', viewport.offsetLeft + 'px');
 }
 
-window.addEventListener('resize', () => positionOpenPicker(true));
-window.visualViewport?.addEventListener('resize', () => positionOpenPicker(true));
-window.visualViewport?.addEventListener('scroll', () => positionOpenPicker());
-document.addEventListener('scroll', event => {
-  if (event.target === document || event.target.id === 'choices') positionOpenPicker();
-}, true);
-document.addEventListener('pointerdown', event => {
-  if (openPicker && !openPicker.wrapper.contains(event.target)) openPicker.hide();
-});
+window.visualViewport?.addEventListener('resize', sizeOpenPicker);
+window.visualViewport?.addEventListener('scroll', sizeOpenPicker);
 
 export function activityPicker(entries, current, letter, onSelect, options = {}) {
   const wrapper = el('div', 'picker');
@@ -95,21 +59,31 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
   const suffix = String(letter).replace(/[^a-zA-Z0-9_-]/g, '-');
   const label = el('label', '', labelText);
   label.htmlFor = 'activity-' + suffix;
-  const search = el('div', 'picker-search');
+  label.id = 'label-' + suffix;
+  const trigger = el('button', 'picker-trigger');
+  trigger.type = 'button';
+  trigger.id = label.htmlFor;
+  const value = el('span', '', current || 'Search or browse');
+  value.id = 'selected-' + suffix;
+  trigger.append(value);
+  trigger.setAttribute('aria-labelledby', label.id + ' ' + value.id);
+  trigger.setAttribute('aria-haspopup', 'dialog');
+  trigger.setAttribute('aria-expanded', 'false');
+  const panel = el('dialog', 'picker-panel');
+  panel.id = 'picker-' + suffix;
+  panel.setAttribute('aria-label', labelText);
+  trigger.setAttribute('aria-controls', panel.id);
   const input = el('input');
   input.type = 'search';
-  input.id = label.htmlFor;
   input.autocomplete = 'off';
   input.spellcheck = false;
-  input.placeholder = 'Search or browse';
-  input.defaultValue = current;
+  input.placeholder = 'Search activities';
+  input.setAttribute('aria-label', input.placeholder);
   input.setAttribute('role', 'combobox');
   input.setAttribute('aria-autocomplete', 'list');
-  input.setAttribute('aria-expanded', 'false');
-  const panel = el('div', 'picker-panel');
-  panel.popover = 'manual';
-  panel.hidden = true;
+  input.setAttribute('aria-expanded', 'true');
   const toolbar = el('div', 'picker-toolbar');
+  const navigation = el('div', 'picker-navigation');
   const back = el('button', 'picker-back', 'Back');
   back.type = 'button';
   back.hidden = true;
@@ -117,6 +91,7 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
   breadcrumb.setAttribute('aria-label', 'Activity categories');
   const close = el('button', 'picker-close', 'Close');
   close.type = 'button';
+  close.autofocus = true;
   const status = el('p', 'picker-status');
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
@@ -125,7 +100,8 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
   list.setAttribute('role', 'listbox');
   list.setAttribute('aria-label', 'Browse categories for choice ' + letter);
   input.setAttribute('aria-controls', list.id);
-  toolbar.append(back, breadcrumb, close);
+  toolbar.append(input, close);
+  navigation.append(back, breadcrumb);
   const more = el('button', 'picker-more', 'Show more');
   more.type = 'button';
   more.hidden = true;
@@ -135,22 +111,19 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
   coverageFilter.append(coverageCheckbox, 'Only items with a shared measure');
   coverageFilter.hidden = typeof options.coverage !== 'function';
   coverageCheckbox.addEventListener('change', () => render());
-  panel.append(toolbar, coverageFilter, status, list, more);
-  search.append(input, panel);
-  wrapper.append(label, search);
+  const results = el('div', 'picker-results');
+  results.append(navigation, coverageFilter, status, list, more);
+  panel.append(toolbar, results);
+  wrapper.append(label, trigger, panel);
 
   let path = [];
   let specifics = false;
   let visible = [];
   let active = -1;
   let limit = pageSize;
-  function hide() {
-    if (panel.isConnected && !panel.hidden) panel.hidePopover?.();
-    panel.hidden = true;
-    input.value = input.defaultValue;
-    input.setAttribute('aria-expanded', 'false');
-    input.removeAttribute('aria-activedescendant');
-    if (openPicker?.panel === panel) openPicker = null;
+  function focusForBrowsing() {
+    const target = window.matchMedia('(pointer: coarse)').matches ? close : input;
+    target.focus({ preventScroll: true });
   }
   function highlight(index) {
     active = index;
@@ -165,8 +138,8 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
     path = nextPath;
     specifics = false;
     input.value = '';
-    input.focus({ preventScroll: true });
     render();
+    focusForBrowsing();
   }
   function crumb(text, action, isCurrent = false) {
     if (isCurrent) {
@@ -184,16 +157,16 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
     else if (row.type === 'specifics') {
       specifics = true;
       input.value = '';
-      input.focus({ preventScroll: true });
       render();
+      focusForBrowsing();
     }
     else {
-      hide();
+      panel.close();
       onSelect(row.entry);
     }
   }
   function render(keepPosition = false) {
-    const scrollTop = keepPosition ? list.scrollTop : 0;
+    const scrollTop = keepPosition ? results.scrollTop : 0;
     if (!keepPosition) limit = pageSize;
     const coverage = options.coverage?.();
     coverageFilter.hidden = !coverage?.hasPeers;
@@ -260,51 +233,60 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
       option.addEventListener('click', () => activate(row));
       return option;
     }));
-    list.scrollTop = scrollTop;
+    results.scrollTop = scrollTop;
     breadcrumb.scrollLeft = breadcrumb.scrollWidth;
-    positionOpenPicker(true);
   }
   function show(query = '') {
-    if (openPicker?.panel !== panel) openPicker?.hide();
-    openPicker = { wrapper, input, panel, hide };
+    path = [];
+    specifics = false;
     input.value = query;
-    panel.hidden = false;
-    panel.showPopover?.();
-    input.setAttribute('aria-expanded', 'true');
     render();
+    panel.showModal();
+    sizeOpenPicker();
+    trigger.setAttribute('aria-expanded', 'true');
+    if (query) input.focus();
+    else focusForBrowsing();
   }
-  close.addEventListener('click', () => { hide(); input.focus({ preventScroll: true }); });
+  trigger.addEventListener('click', () => show());
+  trigger.addEventListener('keydown', event => {
+    if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+    const text = event.key.length === 1 && event.key !== ' ';
+    if (!text && event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    show(text ? event.key : '');
+    input.focus();
+    if (!text && visible.length) highlight(0);
+  });
+  close.addEventListener('click', () => panel.close());
+  panel.addEventListener('close', () => {
+    trigger.setAttribute('aria-expanded', String(panel.open));
+    if (!panel.open && trigger.isConnected) trigger.focus({ preventScroll: true });
+  });
+  panel.addEventListener('click', event => {
+    if (event.target !== panel) return;
+    const rect = panel.getBoundingClientRect();
+    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) panel.close();
+  });
   back.addEventListener('click', () => {
     if (input.value) {
       input.value = '';
-      input.focus({ preventScroll: true });
       render();
+      focusForBrowsing();
     } else navigate(specifics ? path : path.slice(0, -1));
   });
   more.addEventListener('click', () => {
     const next = limit;
-    input.focus({ preventScroll: true });
+    focusForBrowsing();
     limit += pageSize;
     render(true);
     highlight(Math.min(next, visible.length - 1));
   });
-  input.addEventListener('focus', () => { if (panel.hidden) input.select(); });
-  input.addEventListener('click', () => { if (panel.hidden) { path = []; specifics = false; show(); } });
-  input.addEventListener('input', () => show(input.value));
-  wrapper.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && !panel.hidden) {
-      event.preventDefault();
-      event.stopPropagation();
-      hide();
-      input.focus({ preventScroll: true });
-    }
-  });
+  input.addEventListener('input', () => render());
   input.addEventListener('keydown', event => {
     const arrow = event.key === 'ArrowDown' || event.key === 'ArrowUp';
     const boundary = (event.key === 'Home' || event.key === 'End') && !input.value;
-    if ((arrow || boundary) && (!panel.hidden || arrow)) {
+    if (arrow || boundary) {
       event.preventDefault();
-      if (panel.hidden) show();
       if (visible.length) {
         const next = event.key === 'Home' ? 0 : event.key === 'End' ? visible.length - 1 : event.key === 'ArrowDown' ? Math.min(active + 1, visible.length - 1) : Math.max(active - 1, 0);
         if (next >= limit) {
@@ -313,15 +295,14 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
         }
         highlight(next);
       }
-    } else if ((event.key === 'Enter' || event.key === 'ArrowRight') && !panel.hidden && visible.length) {
+    } else if ((event.key === 'Enter' || event.key === 'ArrowRight') && visible.length) {
       if (event.key === 'ArrowRight' && (input.value || visible[Math.max(0, active)].type === 'item')) return;
       event.preventDefault();
       activate(visible[Math.max(0, active)]);
-    } else if (event.key === 'ArrowLeft' && !panel.hidden && !input.value && (path.length || specifics)) {
+    } else if (event.key === 'ArrowLeft' && !input.value && (path.length || specifics)) {
       event.preventDefault();
       navigate(specifics ? path : path.slice(0, -1));
     }
   });
-  wrapper.addEventListener('focusout', event => { if (!wrapper.contains(event.relatedTarget)) hide(); });
   return wrapper;
 }
