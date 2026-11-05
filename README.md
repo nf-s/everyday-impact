@@ -16,7 +16,7 @@ For an electricity-only benchmark, you can select an assumed Australian grid to 
 
 ## Interface design
 
-The interface adapts [Radix Themes spacing](https://www.radix-ui.com/themes/docs/theme/spacing), [typography](https://www.radix-ui.com/themes/docs/theme/typography) and [Radix Slate colors](https://www.radix-ui.com/colors) through CSS tokens in `dist/styles.css`. Native controls use shared surface, border, focus and radius styles. Use the existing space and type tokens for layout changes. At widths below 768px, the toolbar and results reflow vertically. Activity controls stack above their totals when their card is 400px wide or narrower.
+The interface adapts [Radix Themes spacing](https://www.radix-ui.com/themes/docs/theme/spacing), [typography](https://www.radix-ui.com/themes/docs/theme/typography) and [Radix Slate colors](https://www.radix-ui.com/colors) through CSS tokens in `dist/styles.css`. The compact type scale uses 12px metadata, 13px labels and supporting text, 15px body and activity text, 18px section headings, 22px totals and 24px page headings (22px on phones). Headings use weight 600; native inputs retain 16px text on small screens and touch devices. Native controls use shared surface, border, focus and radius styles. Use the existing space and type tokens for layout changes. At widths below 768px, the toolbar and results reflow vertically. Activity controls stack above their totals when their card is 400px wide or narrower.
 
 ## Local development
 
