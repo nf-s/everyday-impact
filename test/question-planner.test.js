@@ -139,7 +139,7 @@ test('compatible replacement paraphrases become one swap while incompatible evid
   }
   for (const question of ['Replace a smartphone with a kettle', 'What if I swapped a smartphone for a kettle?']) {
     let calls = 0;
-    await assert.rejects(generatePlan(question, async () => { calls++; return {}; }), error => error.code === 'unsupported_replacement' && /Advanced/.test(error.message));
+    await assert.rejects(generatePlan(question, async () => { calls++; return {}; }), error => error.code === 'unsupported_replacement' && /Try an alternative/.test(error.message));
     assert.equal(calls, 0);
   }
   const supported = shortlistQuestion('Replace a beef meal with a vegan meal');

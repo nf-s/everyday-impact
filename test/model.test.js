@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { groups } from '../dist/data/catalogue.js';
 import { defaultUsage } from '../dist/defaults.js';
-import { metrics, comparisonMetrics, metricForOption, estimateChoice, displayImpact, formatEstimate, calculate, availableMetrics } from '../dist/model.js';
+import { metrics, comparisonMetrics, metricForOption, estimateChoice, estimateComparison, displayImpact, formatEstimate, formatDifference, calculate, availableMetrics } from '../dist/model.js';
 
 const option = (group, id) => groups.find(entry => entry.id === group).options.find(item => item.id === id);
 
@@ -50,6 +50,43 @@ test('table and calculation details express changes in the same units and direct
   assert.equal(formatEstimate(1.5, 'carbon', 'skip'), '1.5 kg CO₂e lower');
   assert.equal(formatEstimate(0, 'energy', 'swap'), '0 kWh');
   assert.equal(formatEstimate(-0.002907, 'energy', 'swap', 'Wh'), '2.91 Wh higher');
+  assert.equal(formatDifference(0, 'energy'), 'No change');
+  assert.equal(formatEstimate(13140, 'water', 'footprint'), '13,140 L');
+  assert.equal(formatDifference(5616, 'water'), '5,616 L less water');
+  assert.equal(formatDifference(-12, 'water'), '12 L more water');
+  assert.equal(formatDifference(-0.002907, 'energy', 'Wh'), '2.91 Wh higher');
+});
+
+test('adding or removing an alternative keeps the current shower total', () => {
+  const current = option('shower', 'higher-9l');
+  const alternative = option('shower', 'efficient-6l');
+  const schedule = { amount: 4, period: 'once', times: 1 };
+  for (const kind of ['footprint', 'swap']) {
+    assert.deepEqual(estimateComparison(current, null, { ...schedule, kind }, 'water'),
+      { current: 36, alternative: null, difference: null });
+  }
+  assert.deepEqual(estimateComparison(current, alternative, { ...schedule, kind: 'swap' }, 'water'),
+    { current: 36, alternative: 24, difference: 12 });
+  assert.deepEqual(estimateComparison(current, null, { ...schedule, kind: 'skip' }, 'water'),
+    { current: 36, alternative: 0, difference: 36 });
+  const recurring = { ...schedule, kind: 'swap', period: 'weekly', times: 3 };
+  assert.deepEqual(estimateComparison(alternative, current, recurring, 'water', { amount: 2, unit: 'weeks' }),
+    { current: 144, alternative: 216, difference: -72 });
+});
+
+test('each published total survives when the other side is missing or counts different water', () => {
+  const tap = { values: { tapWater: 6 } };
+  const cooling = { values: { coolingWater: 0 } };
+  const noWater = { values: { carbon: 1 } };
+  const choice = { amount: 1, period: 'once', times: 1, kind: 'swap' };
+  assert.deepEqual(estimateComparison(tap, cooling, choice, 'water'), { current: 6, alternative: 0, difference: null });
+  assert.deepEqual(estimateComparison(tap, noWater, choice, 'water'), { current: 6, alternative: null, difference: null });
+  assert.deepEqual(estimateComparison(noWater, cooling, choice, 'water'), { current: null, alternative: 0, difference: null });
+  assert.deepEqual(estimateComparison(cooling, cooling, choice, 'water'), { current: 0, alternative: 0, difference: 0 });
+  assert.deepEqual(estimateComparison(noWater, null, { ...choice, kind: 'skip' }, 'water'),
+    { current: null, alternative: null, difference: null });
+  assert.deepEqual(estimateComparison(tap, cooling, { ...choice, amount: NaN }, 'water'),
+    { current: null, alternative: null, difference: null });
 });
 
 test('a missing factor stays unknown while a skipped item has a zero replacement footprint', () => {

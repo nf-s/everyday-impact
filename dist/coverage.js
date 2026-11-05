@@ -2,10 +2,10 @@ import { comparisonMetrics, metricForOption, validAmount } from './model.js';
 
 // Resolve effective options before calling these helpers (including any explicit scenarios).
 export function choiceCoverage({ choice, before, after }) {
-  if (!before || !validAmount(choice.amount) || !validAmount(choice.times) || (choice.kind === 'swap' && !after)) return [];
+  if (!before || !validAmount(choice.amount) || !validAmount(choice.times)) return [];
   return Object.keys(comparisonMetrics).filter(key => {
     const source = metricForOption(before, key);
-    return source !== null && (choice.kind !== 'swap' || metricForOption(after, key) === source);
+    return source !== null && (!after || metricForOption(after, key) === source);
   });
 }
 

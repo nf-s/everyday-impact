@@ -10,7 +10,7 @@ test('coverage preserves real zero factors and accepts effective scenario factor
 test('swaps require estimates on both sides and matching water definitions', () => {
   const swap = { ...entry({ carbon: 1, coolingWater: 2 }), choice: { kind: 'swap', amount: 1, times: 1 }, after: { values: { carbon: 0.5, tapWater: 1 } } };
   assert.deepEqual(choiceCoverage(swap), ['carbon']);
-  assert.deepEqual(choiceCoverage({ ...swap, after: null }), []);
+  assert.deepEqual(choiceCoverage({ ...swap, after: null }), ['carbon', 'water']);
   assert.deepEqual(choiceCoverage({ ...swap, after: { values: { coolingWater: 0 } } }), ['water']);
 });
 test('shared volume coverage identifies differing source scopes', () => {

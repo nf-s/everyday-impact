@@ -1,4 +1,4 @@
-import { comparisonMetrics, metrics, defaultHorizon, horizonLabel, horizonExplanation, occurrencesFor, metricForOption, validAmount, formatEstimate, raw } from './model.js';
+import { comparisonMetrics, metrics, defaultHorizon, horizonLabel, horizonExplanation, occurrencesFor, metricForOption, validAmount, formatEstimate, formatDifference, raw } from './model.js';
 import { el, sourceLinks, evidenceBadge } from './dom.js';
 
 let dialog;
@@ -17,20 +17,9 @@ function getDialog() {
   return dialog;
 }
 
-function missingReason({ choice, before, after }, key) {
-  if (choice.kind === 'swap' && !after) return 'Choose a replacement in Advanced to calculate the change.';
-  if (!validAmount(choice.amount) || !validAmount(choice.times)) {
-    return 'Enter a positive quantity and frequency in Advanced to calculate this estimate.';
-  }
-  const missing = [before, after].filter(item => item && metricForOption(item, key) === null);
-  if (missing.length) return 'The sources have no figure for ' + missing.map(item => item.label).join(' or ') + ' on this measure.';
-  return 'The original and replacement activities use different water definitions, so the sources do not support a difference.';
-}
-
-function formula({ choice, group, before, after, value }, metricKey, horizon) {
-  const from = raw(before.values[metricKey]);
+function formula(item, group, choice, total, metricKey, horizon) {
+  const factor = raw(item.values[metricKey]);
   const unit = metrics[metricKey].unit;
-  const factor = after ? '(' + from + ' − ' + raw(after.values[metricKey]) + ')' : from;
   const quantityUnit = choice.amount === 1 ? group.singular : group.plural;
   let calculation = factor + ' ' + unit + ' per ' + group.singular + ' × ' + raw(choice.amount) + ' ' + quantityUnit;
   if (choice.times !== 1) calculation += ' × ' + raw(choice.times) + ' times';
@@ -39,7 +28,7 @@ function formula({ choice, group, before, after, value }, metricKey, horizon) {
     const occurrences = occurrencesFor(choice.period, horizon);
     calculation += ' per ' + cadence + ' × ' + raw(occurrences) + ' ' + cadence + (occurrences === 1 ? '' : 's');
   }
-  return calculation + ' = ' + raw(value) + ' ' + unit;
+  return calculation + ' = ' + raw(total) + ' ' + unit;
 }
 
 function showGenericBasis(section, group, item, key) {
@@ -76,34 +65,50 @@ function showGenericBasis(section, group, item, key) {
   section.append(details);
 }
 
+function totalLine(label, total, key, unit) {
+  const line = el('p', 'measure-dialog-result', label + ' · ');
+  line.append(el('span', 'number', total === null ? 'No estimate' : formatEstimate(total, key, 'footprint', unit)));
+  return line;
+}
+
 function renderEntry(entry, key, unit, horizon) {
-  const { letter, title, choice, group, before, after, afterGroup, value } = entry;
+  const { letter, title, choice, group, before, after, afterGroup, current, alternative, difference } = entry;
   const section = el('section', 'measure-dialog-entry');
-  section.append(el('h3', '', 'Choice ' + letter + ' · ' + title));
-  if (value === null) {
-    section.append(el('p', 'measure-dialog-result', 'No estimate'), el('p', 'measure-dialog-scope', missingReason(entry, key)));
-  } else {
-    const metricKey = metricForOption(before, key);
-    const label = (choice.kind === 'footprint' ? 'Footprint' : 'Change') + ' over ' + horizonLabel(horizon);
-    const result = el('p', 'measure-dialog-result', label + ' · ');
-    result.append(el('span', 'number', formatEstimate(value, key, choice.kind, unit)));
-    section.append(result);
-    section.append(el('p', 'measure-dialog-formula', formula(entry, metricKey, horizon)));
-    for (const [item, itemGroup] of [[before, group], [after, afterGroup]]) {
-      if (!item) continue;
-      const grid = key === 'carbon' ? item.gridEstimate : null;
-      if (grid) {
-        const scope = item.energyScope || itemGroup.energyScope || 'Electricity used by this activity';
-        section.append(el('p', 'measure-dialog-scope', 'Grid estimate for ' + item.label + ' · ' + grid.label + '. ' + scope + '.'),
-          el('p', 'measure-dialog-formula', raw(item.values.energy) + ' kWh per ' + itemGroup.singular + ' × ' + raw(grid.values.carbon) +
-            ' kg CO₂e/kWh = ' + raw(item.values.carbon) + ' kg CO₂e per ' + itemGroup.singular),
-          el('p', 'measure-dialog-scope', 'This assumes the selected Australian grid supplies the electricity counted in the activity. Other life-cycle emissions are outside this estimate. ' + grid.note));
-      }
-      showGenericBasis(section, itemGroup, item, grid ? 'energy' : key);
+  section.append(el('h3', '', 'Activity ' + letter + ' · ' + title));
+  const currentLabel = choice.kind === 'footprint' ? 'Total' : 'Current · ' + before.label;
+  section.append(totalLine(currentLabel, current, key, unit));
+  if (after) section.append(totalLine('Alternative · ' + after.label, alternative, key, unit));
+  if (choice.kind === 'skip') section.append(totalLine('Skip without replacement', alternative, key, unit));
+  if (difference !== null) section.append(el('p', 'measure-dialog-result', formatDifference(difference, key, unit)));
+  if (choice.kind === 'swap' && !after) section.append(el('p', 'measure-dialog-scope', 'Choose an alternative to see the difference.'));
+  if (!validAmount(choice.amount) || !validAmount(choice.times)) {
+    section.append(el('p', 'measure-dialog-scope', 'Enter a positive quantity and frequency.'));
+  } else if (after && current !== null && alternative !== null && difference === null && key === 'water') {
+    section.append(el('p', 'measure-dialog-scope', 'The sources measure different kinds of water use, so a difference is unavailable.'));
+  }
+
+  for (const [item, itemGroup, total] of [[before, group, current], [after, afterGroup, alternative]]) {
+    if (!item) continue;
+    const metricKey = metricForOption(item, key);
+    if (metricKey === null) {
+      section.append(el('p', 'measure-dialog-scope', 'No published figure for ' + item.label + ' on this measure.'));
+      continue;
     }
-    if (after) section.append(el('p', 'measure-dialog-scope', 'The change is the original factor minus the replacement factor. A negative result means an increase.'));
-    if (choice.kind === 'skip') section.append(el('p', 'measure-dialog-scope', 'Skipping assumes no replacement activity or purchase.'));
-    if (key === 'water') section.append(el('p', 'measure-dialog-scope', metrics[metricKey].label + '. ' + metrics[metricKey].note));
+    if (total === null) continue;
+    const calculation = formula(item, itemGroup, choice, total, metricKey, horizon);
+    section.append(el('p', 'measure-dialog-formula', after ? item.label + ' · ' + calculation : calculation));
+    if (key === 'water' && (item === before || metricKey !== metricForOption(before, key))) {
+      section.append(el('p', 'measure-dialog-scope', metrics[metricKey].label + '. ' + metrics[metricKey].note));
+    }
+    const grid = key === 'carbon' ? item.gridEstimate : null;
+    if (grid) {
+      const scope = item.energyScope || itemGroup.energyScope || 'Electricity used by this activity';
+      section.append(el('p', 'measure-dialog-scope', 'Grid estimate for ' + item.label + ' · ' + grid.label + '. ' + scope + '.'),
+        el('p', 'measure-dialog-formula', raw(item.values.energy) + ' kWh per ' + itemGroup.singular + ' × ' + raw(grid.values.carbon) +
+          ' kg CO₂e/kWh = ' + raw(item.values.carbon) + ' kg CO₂e per ' + itemGroup.singular),
+        el('p', 'measure-dialog-scope', 'This assumes the selected Australian grid supplies the electricity counted in the activity. Other life-cycle emissions are outside this estimate. ' + grid.note));
+    }
+    showGenericBasis(section, itemGroup, item, grid ? 'energy' : key);
   }
 
   for (const item of new Set([before, after])) {
@@ -117,7 +122,9 @@ function renderEntry(entry, key, unit, horizon) {
   const context = el('details', 'measure-dialog-scope');
   context.append(el('summary', '', 'Source context and assumptions'), el('p', '', group.sourceNote));
   for (const item of [before, after]) {
-    if (item?.note) context.append(el('p', '', item.label + ' · ' + item.note));
+    if (!item) continue;
+    const note = [item.genericHint, item.note].filter(Boolean).join(' · ');
+    if (note) context.append(el('p', '', item.label + ' · ' + note));
   }
   const sources = [...(before.sources || []), ...(after?.sources || []), ...group.sources];
   if (after && afterGroup !== group) {
@@ -145,7 +152,7 @@ export function showMeasureDetails(key, entries, trigger, unit, horizon = defaul
   opener = trigger;
   const header = el('div', 'dialog-header');
   const metric = comparisonMetrics[key];
-  const title = el('h2', '', metric.label + ' · calculation details');
+  const title = el('h2', '', metric.label + ' over ' + horizonLabel(horizon));
   title.id = 'measure-dialog-title';
   const close = el('button', 'dialog-close', 'Close');
   close.type = 'button';

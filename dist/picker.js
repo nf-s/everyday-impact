@@ -112,6 +112,15 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
   coverageFilter.hidden = typeof options.coverage !== 'function';
   coverageCheckbox.addEventListener('change', () => render());
   const results = el('div', 'picker-results');
+  if (options.onSkip) {
+    const skip = el('button', 'picker-skip', 'Skip this activity');
+    skip.type = 'button';
+    skip.addEventListener('click', () => {
+      panel.close();
+      options.onSkip();
+    });
+    results.append(skip);
+  }
   results.append(navigation, coverageFilter, status, list, more);
   panel.append(toolbar, results);
   wrapper.append(label, trigger, panel);

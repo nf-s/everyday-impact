@@ -1,7 +1,7 @@
 import { defaultChoice, validCatalogueChoice, itemName, replacementGroup, replacementPools, searchEntries } from './entries.js';
 import { groups } from './data/catalogue.js';
 import { labourEvidence } from './data/goods.js';
-import { metrics, comparisonMetrics, periods, defaultHorizon, validHorizon, horizonLabel, occurrencesFor, validAmount, metricForOption, canEstimateGridCarbon, withGridCarbon, estimateChoice, formatEstimate, number, raw } from './model.js';
+import { metrics, comparisonMetrics, periods, defaultHorizon, validHorizon, horizonLabel, occurrencesFor, validAmount, metricForOption, canEstimateGridCarbon, withGridCarbon, estimateComparison, formatEstimate, formatDifference, number, raw } from './model.js';
 import { defaultUsage } from './defaults.js';
 import { activityPicker } from './picker.js';
 import { el, sourceLinks, evidenceBadge } from './dom.js';
@@ -65,7 +65,6 @@ const gridSelect = view('estimate-grid');
 options(gridSelect, [['', 'Use source figures only'], ...gridGroup.options.map(item => [item.id, item.label])], '');
 gridSelect.addEventListener('change', () => renderAll(openAdvancedCards()));
 const addChoiceButton = view('add-choice');
-view('question-panel').open = window.matchMedia('(min-width: 701px)').matches;
 
 export function setComparisonHorizon(horizon) {
   if (!validHorizon(horizon)) return false;
@@ -127,11 +126,8 @@ function selectField(text, name, values, selected) {
 }
 
 function choiceTitle(choice) {
-  const { group, before, afterGroup, after } = selections(choice);
-  const name = itemName(group, before);
-  if (choice.kind === 'skip') return 'Skip ' + name;
-  if (after) return name + ' → ' + itemName(afterGroup, after);
-  return name;
+  const { group, before } = selections(choice);
+  return itemName(group, before);
 }
 
 function portionUnit(group) {
@@ -140,15 +136,14 @@ function portionUnit(group) {
 }
 
 function usageText(choice) {
-  const { group, before } = selections(choice);
-  if (!validAmount(choice.amount) || !validAmount(choice.times)) return 'Enter a positive quantity and frequency in Advanced.';
-  const suggested = defaultUsage(group, before);
-  if (['amount', 'times', 'period'].every(key => choice[key] === suggested[key])) return suggested.description;
+  const group = byId.get(choice.group);
+  if (!validAmount(choice.amount) || !validAmount(choice.times)) return 'Check quantity and frequency';
   const portion = portionUnit(group);
   const unit = portion.scale === 1 && choice.amount === 1 ? group.singular : portion.label;
   const cadence = { daily: 'day', weekly: 'week', monthly: 'month' };
-  const schedule = choice.period === 'once' ? 'once' : raw(choice.times) + (choice.times === 1 ? ' time' : ' times') + ' per ' + cadence[choice.period];
-  return raw(choice.amount * portion.scale) + ' ' + unit + ', ' + schedule + '.';
+  const schedule = choice.times === 1 ? { once: 'once', daily: 'daily', weekly: 'weekly', monthly: 'monthly' }[choice.period] :
+    raw(choice.times) + ' times per ' + cadence[choice.period];
+  return raw(choice.amount * portion.scale) + ' ' + unit + ' · ' + schedule;
 }
 
 function numericField(text, field, value, scale = 1) {
@@ -174,7 +169,8 @@ function pickerCoverage(index, replacing = false) {
     hasPeers: peers.length > 0,
     describe(entry) {
       if (cache.has(entry)) return cache.get(entry);
-      const choice = replacing ? { ...choices[index], after: entry.choice.before, afterGroup: entry.choice.group } : entry.choice;
+      const choice = replacing ? { ...choices[index], kind: 'swap', after: entry.choice.before, afterGroup: entry.choice.group } :
+        selectActivity(choices[index], entry.choice);
       const candidate = coverageEntry(choice);
       const available = choiceCoverage(candidate);
       const keys = peers.length ? peerKeys.filter(key => available.includes(key)) : available;
@@ -185,42 +181,119 @@ function pickerCoverage(index, replacing = false) {
   };
 }
 
+function selectActivity(current, selection) {
+  if (!current || current.kind === 'footprint' || selection.kind !== 'footprint') return { ...selection };
+  const original = selections(current);
+  const next = selections(selection);
+  if (original.group.singular !== next.group.singular ||
+      replacementGroup(original.group, original.before) !== replacementGroup(next.group, next.before)) return { ...selection };
+  return { ...current, group: selection.group, before: selection.before, ...(original.after ? { afterGroup: original.afterGroup.id } : {}) };
+}
+
+function setAlternative(index, kind, entry) {
+  const choice = choices[index];
+  choice.kind = kind;
+  choice.after = entry?.choice.before ?? null;
+  if (entry) choice.afterGroup = entry.choice.group;
+  else delete choice.afterGroup;
+  setCustom();
+  refreshChoice(index, kind === 'footprint' ? 'toggle-alternative' : 'replacement');
+}
+
+function pickerTotal(control, className) {
+  const row = el('div', 'activity-with-total');
+  control.before(row);
+  row.append(control, el('strong', className));
+}
+
+function showEvidence(picker, item) {
+  if (item?.evidenceLabel) picker.append(evidenceBadge(item.evidenceLabel));
+  if (item?.qualityWarning) picker.append(el('p', 'choice-context', item.qualityWarning));
+}
+
+function alternativePicker(index, letter, group, before, afterGroup, after) {
+  const choice = choices[index];
+  const entries = replacementPools.get(replacementGroup(group, before))
+    .filter(entry => byId.get(entry.choice.group).singular === group.singular);
+  const id = 'activity-' + letter + '-replacement';
+  let picker;
+  if (entries.length <= 12) {
+    picker = el('div', 'picker');
+    const label = el('label', '', 'Alternative');
+    label.htmlFor = id;
+    const select = el('select');
+    select.id = id;
+    const prompt = new Option('Choose an alternative', '');
+    prompt.disabled = true;
+    select.append(prompt, new Option('Skip this activity', 'skip'));
+    for (const [i, entry] of entries.entries()) select.append(new Option(entry.label, String(i)));
+    const selected = entries.findIndex(entry => entry.choice.group === afterGroup.id && entry.choice.before === choice.after);
+    select.value = choice.kind === 'skip' ? 'skip' : selected === -1 ? '' : String(selected);
+    select.addEventListener('change', () => {
+      if (select.value === 'skip') setAlternative(index, 'skip');
+      else setAlternative(index, 'swap', entries[Number(select.value)]);
+    });
+    // Native selects clip long names. The visible label can wrap while the select handles input.
+    const control = el('div', 'picker-trigger compact-alternative');
+    const selectedName = el('span', '', select.selectedOptions[0].text);
+    selectedName.setAttribute('aria-hidden', 'true');
+    control.append(selectedName, select);
+    picker.append(label, control);
+    pickerTotal(control, 'card-alternative-total');
+  } else {
+    const name = choice.kind === 'skip' ? 'Skip this activity' : after ? itemName(afterGroup, after) : 'Choose an alternative';
+    picker = activityPicker(entries, name, letter + '-replacement', entry => setAlternative(index, 'swap', entry), {
+      label: 'Alternative', coverage: () => pickerCoverage(index, true), onSkip: () => setAlternative(index, 'skip')
+    });
+    pickerTotal(picker.querySelector('.picker-trigger'), 'card-alternative-total');
+  }
+  picker.classList.add('alternative-picker');
+  showEvidence(picker, after);
+  return picker;
+}
+
+function updateSchedule(card, choice) {
+  card.querySelector('.schedule-value').textContent = usageText(choice);
+  const { group, before } = selections(choice);
+  const suggested = defaultUsage(group, before);
+  const assumption = card.querySelector('.schedule-assumption');
+  assumption.textContent = ['amount', 'period', 'times'].every(key => choice[key] === suggested[key]) ? suggested.description : '';
+  assumption.hidden = !assumption.textContent;
+}
+
 function renderCard(index, keepOpen = false) {
   const choice = choices[index];
   const letter = choiceLetter(index);
   const card = el('article', 'choice');
   card.dataset.index = index;
-  card.setAttribute('aria-label', 'Choice ' + letter);
+  card.setAttribute('aria-label', 'Activity ' + letter);
   const picker = activityPicker(searchEntries, choice ? choiceTitle(choice) : '', letter, entry => {
-    choices[index] = { ...entry.choice };
+    choices[index] = selectActivity(choice, entry.choice);
     setCustom();
     refreshChoice(index, 'picker');
-  }, { coverage: () => pickerCoverage(index) });
+  }, { label: 'Activity ' + letter, coverage: () => pickerCoverage(index) });
   if (choices.length > 1) {
     const remove = el('button', 'remove-choice', '×');
     remove.type = 'button';
-    remove.title = 'Remove choice ' + letter;
+    remove.title = 'Remove activity ' + letter;
     remove.setAttribute('aria-label', remove.title);
     remove.addEventListener('click', () => removeChoice(index));
     picker.append(remove);
   }
   card.append(picker);
   if (!choice) return card;
-  const { group, before, after } = selections(choice);
-  const description = el('p', 'choice-context', usageText(choice));
-  picker.append(description);
-  const coverage = el('p', 'choice-coverage');
-  coverage.dataset.coverageIndex = index;
-  picker.append(coverage);
-  const evidenceLabels = new Set([before.evidenceLabel, after?.evidenceLabel].filter(Boolean));
-  for (const label of evidenceLabels) picker.append(evidenceBadge(label));
-  for (const item of [before, after]) {
-    if (item?.genericHint) picker.append(el('p', 'choice-context', item.genericHint));
-    if (item?.qualityWarning) picker.append(el('p', 'choice-context', item.label + ' · ' + item.qualityWarning));
-  }
+  const { group, before, afterGroup, after } = selections(choice);
+  const label = picker.querySelector('label');
+  const heading = el('div', 'activity-heading');
+  label.before(heading);
+  heading.append(label, el('small', 'card-impact-summary'));
+  pickerTotal(picker.querySelector('.picker-trigger'), 'card-current-total');
+  showEvidence(picker, before);
   const advanced = el('details', 'advanced');
   advanced.open = keepOpen;
-  advanced.append(el('summary', '', 'Advanced'));
+  const summary = el('summary');
+  summary.append(el('span', 'schedule-value'), el('span', 'edit-schedule', 'Edit schedule'));
+  advanced.append(summary);
   const fields = el('div', 'fields');
   const pair = el('div', 'pair');
   const portion = portionUnit(group);
@@ -228,20 +301,25 @@ function renderCard(index, keepOpen = false) {
     Object.entries(periods).map(([key, item]) => [key, item.label]), choice.period));
   fields.append(pair);
   if (choice.period !== 'once') fields.append(numericField('Times per ' + { daily: 'day', weekly: 'week', monthly: 'month' }[choice.period], 'times', choice.times));
-  const alternatives = [['footprint', 'Footprint of this activity'], ['skip', 'Change from skipping this activity']];
-  const replacements = replacementPools.get(replacementGroup(group, before));
-  if (replacements.length > 1) alternatives.push(['swap', 'Change from replacing this activity']);
-  fields.append(selectField('Estimate', 'alternative', alternatives, choice.kind));
-  if (choice.kind === 'swap') {
-    fields.append(activityPicker(replacements, after ? itemName(byId.get(choice.afterGroup || group.id), after) : '', letter + '-replacement', entry => {
-      choice.after = entry.choice.before;
-      choice.afterGroup = entry.choice.group;
-      setCustom();
-      refreshChoice(index, 'replacement');
-    }, { label: 'Replacement for choice ' + letter, coverage: () => pickerCoverage(index, true) }));
-  }
+  fields.append(el('p', 'schedule-assumption input-hint'));
   advanced.append(fields);
   card.append(advanced);
+  updateSchedule(card, choice);
+  const hasAlternative = choice.kind !== 'footprint';
+  if (hasAlternative) {
+    const alternative = alternativePicker(index, letter, group, before, afterGroup, after);
+    alternative.id = 'alternative-' + letter;
+    card.append(alternative);
+  }
+  const footer = el('div', 'alternative-actions');
+  const toggle = el('button', 'alternative-toggle', hasAlternative ? 'Remove alternative' : 'Try an alternative');
+  toggle.type = 'button';
+  toggle.dataset.field = 'toggle-alternative';
+  toggle.setAttribute('aria-expanded', String(hasAlternative));
+  if (hasAlternative) toggle.setAttribute('aria-controls', 'alternative-' + letter);
+  toggle.addEventListener('click', () => setAlternative(index, hasAlternative ? 'footprint' : 'swap'));
+  footer.append(el('span', 'card-difference'), toggle);
+  card.append(footer);
   return card;
 }
 
@@ -255,31 +333,96 @@ function refreshChoice(index, focusField) {
   renderResults();
 }
 
-function resultCell(row, entry, key, largest, unit) {
-  const cell = row.insertCell();
-  const { choice, before, value } = entry;
-  if (value === null) {
-    const valid = validAmount(choice.amount) && validAmount(choice.times);
-    const reason = choice.kind === 'swap' && !choice.after ? 'Choose a replacement' : 'No estimate';
-    cell.append(el('span', 'metric-detail', valid ? reason : 'Check quantity'));
-    return;
-  }
+function measureRows(entries) {
+  return Object.entries(comparisonMetrics).map(([key, metric]) => {
+    const measures = entries.map(entry => ({
+      ...entry, ...estimateComparison(entry.before, entry.after, entry.choice, key, comparisonHorizon)
+    }));
+    const totals = measures.flatMap(({ current, alternative }) => [current, alternative]).filter(value => value !== null);
+    const largest = totals.reduce((max, value) => Math.max(max, Math.abs(value)), 0);
+    const unitBasis = measures.reduce((max, entry) => Math.max(max, Math.abs(entry.current ?? 0)), 0) || largest;
+    const waterScopesDiffer = key === 'water' && new Set(measures.flatMap(({ before, after }) =>
+      [before, after].map(item => metricForOption(item, key)).filter(Boolean))).size > 1;
+    return {
+      key, metric, measures, count: measures.filter(entry => entry.current !== null || entry.alternative !== null).length,
+      unit: key === 'energy' && unitBasis > 0 && unitBasis < 1 ? 'Wh' : metric.unit,
+      barScale: waterScopesDiffer || totals.some(value => value < 0) ? 0 : largest
+    };
+  });
+}
 
-  cell.append(el('span', 'metric-value', formatEstimate(value, key, choice.kind, unit)));
-  const bar = el('div', 'metric-bar');
-  bar.setAttribute('aria-hidden', 'true');
-  const fill = el('div', value === 0 ? 'metric-fill' : 'metric-fill has-value');
-  fill.style.width = (largest ? Math.abs(value) / largest * 100 : 0) + '%';
-  bar.append(fill);
-  cell.append(bar);
-  if (key === 'carbon' && (before.gridEstimate || entry.after?.gridEstimate)) {
-    cell.append(el('small', 'metric-detail', 'Grid estimate · electricity only'));
+function differenceText(entry, key, unit) {
+  if (entry.difference !== null) return formatDifference(entry.difference, key, unit);
+  if (entry.current !== null && entry.alternative !== null && key === 'water') return 'Different water measures';
+  return '';
+}
+
+function totalText(value, key, unit) {
+  return value === null ? 'No estimate' : formatEstimate(value, key, 'footprint', unit);
+}
+
+function totalScope(key, item, group) {
+  if (!item) return '';
+  if (key === 'water') return metrics[metricForOption(item, key)]?.label || '';
+  if (key === 'carbon' && item.gridEstimate) return 'Grid estimate · electricity only';
+  if (key === 'energy') return item.energyScope || group.energyScope || '';
+  return '';
+}
+
+function updateCardTotals(rows, entries, horizonText) {
+  // Keep the featured measure tied to the original activities as alternatives are edited.
+  const common = rows.find(row => entries.every(entry => metricForOption(entry.before, row.key) !== null));
+  entries.forEach((entry, column) => {
+    const card = view('choices').children[entry.index];
+    if (!card) return;
+    const featured = common || rows.find(row => metricForOption(entry.before, row.key) !== null);
+    if (!featured) return;
+    const { key, unit, metric } = featured;
+    const measure = featured.measures[column];
+    const scope = totalScope(key, entry.before, entry.group);
+    const otherWaterScope = key === 'water' && entry.after && totalScope(key, entry.after, entry.afterGroup);
+    const label = key === 'water' && scope && (!otherWaterScope || scope === otherWaterScope) ? scope : metric.label;
+    card.querySelector('.card-impact-summary').textContent = label + ' over ' + horizonText;
+    function showTotal(selector, value, item, group) {
+      const slot = card.querySelector(selector);
+      if (!slot) return;
+      slot.textContent = totalText(value, key, unit);
+      const qualifier = totalScope(key, item, group);
+      if (value !== null && qualifier && key !== 'energy' && qualifier !== label) slot.append(el('small', 'total-scope', qualifier));
+    }
+    showTotal('.card-current-total', measure.current, entry.before, entry.group);
+    if (entry.choice.kind === 'skip' || entry.after) {
+      showTotal('.card-alternative-total', measure.alternative, entry.after, entry.afterGroup);
+    }
+    card.querySelector('.card-difference').textContent = differenceText(measure, key, unit);
+  });
+}
+
+function resultCell(row, entry, measure) {
+  const cell = row.insertCell();
+  const { key, unit, barScale } = measure;
+  const hasAlternative = entry.choice.kind === 'skip' || Boolean(entry.after);
+  function appendTotal(value, item, group, label) {
+    if (label) cell.append(el('small', 'total-label', label));
+    cell.append(el('span', value === null ? 'metric-detail' : 'metric-value', totalText(value, key, unit)));
+    if (value === null) return;
+    if (barScale) {
+      const bar = el('div', 'metric-bar');
+      bar.setAttribute('aria-hidden', 'true');
+      const fill = el('div', value === 0 ? 'metric-fill' : 'metric-fill has-value');
+      fill.style.width = (value / barScale * 100) + '%';
+      bar.append(fill);
+      cell.append(bar);
+    }
+    const scope = totalScope(key, item, group);
+    if (scope) cell.append(el('small', 'total-scope', scope));
   }
-  if (key === 'water') {
-    cell.append(el('small', 'metric-detail water-scope', metrics[metricForOption(before, key)].label));
+  appendTotal(entry.current, entry.before, entry.group, hasAlternative ? 'Current' : '');
+  if (hasAlternative) {
+    appendTotal(entry.alternative, entry.after, entry.afterGroup, 'Alternative');
+    const difference = differenceText(entry, key, unit);
+    if (difference) cell.append(el('small', 'metric-difference', difference));
   }
-  const energyScope = before.energyScope || entry.group.energyScope;
-  if (key === 'energy' && energyScope) cell.append(el('small', 'metric-detail', energyScope));
 }
 
 function renderResults() {
@@ -287,29 +430,22 @@ function renderResults() {
   const horizonText = horizonLabel(comparisonHorizon);
   view('results-title').textContent = 'Estimated impact over ' + horizonText;
   const entries = choices.flatMap((choice, index) => choice ? [{
-    choice, letter: choiceLetter(index), title: choiceTitle(choice), ...selections(choice)
+    choice, index, letter: choiceLetter(index), title: choiceTitle(choice), ...selections(choice)
   }] : []);
   view('grid-scenario').hidden = !gridSelect.value && !entries.some(({ before, after }) =>
     canEstimateGridCarbon(before) || canEstimateGridCarbon(after));
   const notes = [];
-  for (const label of document.querySelectorAll('[data-coverage-index]')) {
-    const choice = choices[Number(label.dataset.coverageIndex)];
-    const keys = choice ? choiceCoverage(coverageEntry(choice)) : [];
-    label.textContent = keys.length ? 'Measures · ' + coverageLabels(keys).join(' · ') : 'No measures available for this choice.';
-  }
+  const rows = measureRows(entries);
+  updateCardTotals(rows, entries, horizonText);
   const shared = sharedCoverage(entries);
   const coverageSummary = view('coverage-summary');
   coverageSummary.replaceChildren();
   if (entries.length > 1) {
-    const available = new Set(entries.flatMap(choiceCoverage));
-    const allShared = shared.length > 0 && shared.length === available.size;
-    const count = shared.length + ' shared ' + (shared.length === 1 ? 'measure' : 'measures');
-    const summary = shared.length ? count + (allShared ? ' (all available)' : '') + ' · ' + coverageLabels(shared).join(' · ') : 'No measure is available for every choice.';
-    coverageSummary.append(el('p', '', summary));
     if (!shared.length) {
+      coverageSummary.append(el('p', '', 'No shared measures across these activities.'));
       const removable = entries.findLast(entry => sharedCoverage(entries.filter(other => other !== entry)).length);
       if (removable) {
-        const change = el('button', 'coverage-action', 'Change choice ' + removable.letter);
+        const change = el('button', 'coverage-action', 'Change activity ' + removable.letter);
         change.type = 'button';
         change.addEventListener('click', () => {
           const input = view('activity-' + removable.letter);
@@ -343,7 +479,7 @@ function renderResults() {
       coverageSummary.append(show);
     }
   }
-  coverageSummary.hidden = entries.length < 2;
+  coverageSummary.hidden = !coverageSummary.childElementCount;
   const table = el('table', 'comparison-table');
   table.setAttribute('aria-labelledby', 'results-title');
   table.style.setProperty('--choice-count', entries.length);
@@ -351,17 +487,20 @@ function renderResults() {
   const measureHeading = el('th', '', 'Measure');
   measureHeading.scope = 'col';
   headingRow.append(measureHeading);
-  for (const { letter, title, choice, group } of entries) {
+  for (const { letter, title, choice, group, after, afterGroup } of entries) {
     const header = el('th');
     header.scope = 'col';
-    header.append(el('small', 'column-letter', 'Choice ' + letter), title);
+    header.append(el('small', 'column-letter', 'Activity ' + letter), title);
+    if (after || choice.kind === 'skip') {
+      header.append(el('small', 'column-alternative', 'Alternative · ' + (after ? itemName(afterGroup, after) : 'Skip this activity')));
+    }
     if (validAmount(choice.amount) && validAmount(choice.times)) {
       const occurrences = occurrencesFor(choice.period, comparisonHorizon);
       const quantity = choice.amount * choice.times * occurrences;
       const unit = quantity === 1 ? group.singular : group.plural;
       const quantityText = Number.isInteger(occurrences) ? raw(quantity) : '≈ ' + number(quantity);
       const summary = el('small', 'column-quantity');
-      summary.append(el('span', 'number', quantityText), ' ' + unit + ' in ' + horizonText);
+      summary.append(el('span', 'number', quantityText), ' ' + unit);
       header.append(summary);
     }
     headingRow.append(header);
@@ -369,23 +508,10 @@ function renderResults() {
 
   const body = table.createTBody();
   const sharedOnly = view('shared-only').checked;
-  let missing = false;
-  const waterScopes = new Set();
-  const rows = Object.entries(comparisonMetrics).map(([key, metric]) => {
-    const measures = entries.map(entry => {
-      const { before, after, choice } = entry;
-      const value = choice.kind === 'swap' && !after ? null : estimateChoice(before, after, choice.amount, choice.period, choice.times, key, comparisonHorizon);
-      return { ...entry, value };
-    });
-    return { key, metric, measures, count: measures.filter(entry => entry.value !== null).length };
-  });
   rows.sort((a, b) => b.count - a.count);
-  for (const { key, metric, measures, count } of rows) {
-    const hasMissing = count < measures.length;
-    if (!measures.length || (sharedOnly && hasMissing)) continue;
-    if (hasMissing) missing = true;
-    const largest = measures.reduce((max, entry) => Math.max(max, Math.abs(entry.value ?? 0)), 0);
-    const unit = key === 'energy' && largest > 0 && largest < 1 ? 'Wh' : metric.unit;
+  for (const measure of rows) {
+    const { key, metric, measures, count, unit } = measure;
+    if (!count || (sharedOnly && !shared.includes(key))) continue;
     const row = body.insertRow();
     const label = el('th', 'measure-text');
     label.scope = 'row';
@@ -410,20 +536,14 @@ function renderResults() {
     controls.append(el('span', 'measure-label', metric.label), details);
     label.append(controls);
     row.append(label);
-    for (const entry of measures) {
-      resultCell(row, entry, key, largest, unit);
-      if (key === 'water' && entry.value !== null) waterScopes.add(metricForOption(entry.before, key));
-    }
+    for (const entry of measures) resultCell(row, entry, measure);
   }
-  view('result-rows').replaceChildren(...(entries.length ? [table] : []));
-  view('bar-guide').hidden = !body.rows.length;
+  view('result-rows').replaceChildren(...(body.rows.length ? [table] : []));
   if (!entries.length) notes.push('Choose an activity to see its estimates.');
-  else if (entries.some(({ choice }) => !validAmount(choice.amount) || !validAmount(choice.times))) notes.push('Enter a positive quantity and frequency in Advanced.');
-  else if (!body.rows.length) notes.push('No shared estimates. Clear the checkbox to see the available figures.');
-  else if (missing) notes.push('“No estimate” means a comparable figure is unavailable for that measure.');
-  if (waterScopes.size > 1) notes.push('Water volumes cover different uses. The labels show what each source counts.');
-  if (entries.some(entry => entry.group.category === 'goods')) notes.push('Goods use the production or lifetime boundary shown in Details.');
-  view('electronics-credit').hidden = !entries.some(entry => entry.group.id === 'digital-devices');
+  else if (entries.some(({ choice }) => !validAmount(choice.amount) || !validAmount(choice.times))) notes.push('Enter a positive quantity and frequency in Edit schedule.');
+  else if (!body.rows.length && entries.length === 1 && sharedOnly) notes.push('Clear “Shared measures only” to see individual estimates.');
+  else if (!body.rows.length && !sharedOnly) notes.push('No estimates for these activities.');
+  view('electronics-credit').hidden = !entries.some(entry => entry.group.id === 'digital-devices' || entry.afterGroup.id === 'digital-devices');
   view('measure-note').textContent = notes.join(' ');
   view('measure-note').hidden = !notes.length;
 }
@@ -476,8 +596,8 @@ const questionForm = setupQuestionForm(({ choices: plan, horizon }) => {
   if (!plan.every(validCatalogueChoice) || (horizon !== undefined && !validHorizon(horizon))) {
     throw new Error('The suggested choices could not be applied.');
   }
-  choices = plan.map(choice => ({ ...choice }));
   if (horizon) setComparisonHorizon(horizon);
+  choices = plan.map(choice => ({ ...choice }));
   view('examples').value = 'custom';
   renderAll();
   view('result-rows').scrollLeft = 0;
@@ -508,25 +628,19 @@ view('choices').addEventListener('input', event => {
   const scale = input.dataset.field === 'amount' ? portionUnit(byId.get(choice.group)).scale : 1;
   choice[input.dataset.field] = input.valueAsNumber / scale;
   input.setAttribute('aria-invalid', String(!validAmount(choice[input.dataset.field])));
-  card.querySelector('.choice-context').textContent = usageText(choice);
+  updateSchedule(card, choice);
   setCustom();
   renderResults();
 });
 view('choices').addEventListener('change', event => {
   const select = event.target;
-  if (!(select instanceof HTMLSelectElement)) return;
+  if (!(select instanceof HTMLSelectElement) || select.dataset.field !== 'period') return;
   const index = Number(select.closest('.choice').dataset.index);
   const choice = choices[index];
-  if (select.dataset.field === 'period') {
-    choice.period = select.value;
-    if (choice.period === 'once') choice.times = 1;
-  } else if (select.dataset.field === 'alternative') {
-    choice.kind = select.value;
-    choice.after = null;
-    delete choice.afterGroup;
-  }
+  choice.period = select.value;
+  if (choice.period === 'once') choice.times = 1;
   setCustom();
-  refreshChoice(index, select.dataset.field === 'alternative' && choice.kind === 'swap' ? 'replacement' : select.dataset.field);
+  refreshChoice(index, 'period');
 });
 view('shared-only').addEventListener('change', renderResults);
 options(view('examples'), [['custom', 'Custom comparison'], ...presets.map(preset => [preset.id, preset.label])], 'ai-beef');

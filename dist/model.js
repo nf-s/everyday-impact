@@ -131,10 +131,29 @@ export function estimateChoice(before, after, amount, period, times, displayKey,
   return Number.isFinite(result) ? result : null;
 }
 
+export function estimateComparison(before, after, choice, displayKey, horizon = defaultHorizon) {
+  const estimate = (item, replacement = null) =>
+    estimateChoice(item, replacement, choice.amount, choice.period, choice.times, displayKey, horizon);
+  const current = estimate(before);
+  if (choice.kind === 'skip') return { current, alternative: current === null ? null : 0, difference: current };
+  if (choice.kind !== 'swap' || !after) return { current, alternative: null, difference: null };
+  const alternative = estimate(after);
+  const difference = current === null || alternative === null ? null : estimate(before, after);
+  return { current, alternative, difference };
+}
+
 export function formatEstimate(value, key, kind, unit = comparisonMetrics[key].unit) {
   const scaled = unit === 'Wh' ? value * 1000 : value;
-  if (kind === 'footprint' || value === 0) return number(scaled) + ' ' + unit;
-  return number(Math.abs(scaled)) + ' ' + unit + (value > 0 ? ' lower' : ' higher');
+  // Preserve whole totals so the displayed difference can be checked directly.
+  const format = Number.isSafeInteger(scaled) ? raw : number;
+  if (kind === 'footprint' || value === 0) return format(scaled) + ' ' + unit;
+  return format(Math.abs(scaled)) + ' ' + unit + (value > 0 ? ' lower' : ' higher');
+}
+
+export function formatDifference(value, key, unit = comparisonMetrics[key].unit) {
+  if (value === 0) return 'No change';
+  if (key === 'water') return formatEstimate(Math.abs(value), key, 'footprint', unit) + (value > 0 ? ' less water' : ' more water');
+  return formatEstimate(value, key, 'swap', unit);
 }
 
 export function displayImpact(value, key) {

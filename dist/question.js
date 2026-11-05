@@ -60,6 +60,11 @@ export function setupQuestionForm(onApply, options = {}) {
     input.setAttribute('aria-invalid', 'false');
     say(pending ? 'Question changed. Submit again when ready.' : '');
   });
+  input.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || (!event.metaKey && !event.ctrlKey) || event.shiftKey || event.altKey || event.isComposing) return;
+    event.preventDefault();
+    if (!event.repeat && !submit.disabled) form.requestSubmit(submit);
+  });
   cancel.addEventListener('click', () => {
     invalidate();
     say('Cancelled. Your choices were kept.');
@@ -93,7 +98,7 @@ export function setupQuestionForm(onApply, options = {}) {
     }, timeoutMs);
     active = { controller, timeout };
     busy(true);
-    say('Preparing comparison. Current choices stay in place until it is ready.');
+    say('Preparing comparison.');
     try {
       let payload = cache.get(question);
       if (!payload) {
@@ -124,8 +129,7 @@ export function setupQuestionForm(onApply, options = {}) {
       cache.delete(question);
       cache.set(question, saved);
       if (cache.size > 8) cache.delete(cache.keys().next().value);
-      if (current === version) say(saved.assumptions?.length ? 'Comparison updated. ' + saved.assumptions.join(' ') :
-        'Comparison updated. Check the quantities and schedules below.');
+      if (current === version) say(['Comparison updated.', ...(saved.assumptions || [])].join(' '));
     } catch (error) {
       if (current !== version) return;
       const message = timedOut ? 'The request timed out. Try again.' :

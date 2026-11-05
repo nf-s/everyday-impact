@@ -22,24 +22,25 @@
   <main id="main" class="shell">
     <section id="compare" aria-labelledby="compare-title">
       <div class="page-heading">
-        <div><h1 id="compare-title">Compare everyday actions</h1><p>Choose activities and a time period. You can edit each activity’s schedule in Advanced.</p></div>
+        <h1 id="compare-title">Compare everyday actions</h1>
       </div>
-      <details class="question-panel" id="question-panel">
-        <summary id="question-label">Ask a comparison question</summary>
-        <form id="question-form" class="question-form" novalidate aria-busy="false" aria-describedby="question-note">
-          <div class="question-entry">
-            <textarea id="question-input" name="question" rows="2" maxlength="500" required aria-labelledby="question-label" aria-describedby="question-note question-status" placeholder="Compare two AI images a day with running a kettle once a day for a month"></textarea>
-            <div class="question-actions"><button type="submit">Compare</button><button type="button" id="question-cancel" hidden>Cancel</button><button type="button" id="question-voice" aria-pressed="false" aria-describedby="question-voice-note" hidden>Dictate</button></div>
-          </div>
-          <p id="question-note">Common requests use catalogue defaults. Cloudflare AI helps choose between possible matches. <span id="question-voice-note" hidden>Dictation may send audio to your browser’s speech service.</span></p>
-          <p id="question-status" class="question-status" role="status" aria-live="polite" aria-atomic="true"></p>
-          <p id="question-voice-status" class="question-status" role="status" aria-live="polite" aria-atomic="true"></p>
-        </form>
-      </details>
+      <form id="question-form" class="question-form" novalidate aria-busy="false" aria-labelledby="question-label">
+        <div class="question-heading">
+          <label id="question-label" for="question-input">Ask a comparison question</label>
+          <span id="question-shortcut">⌘/Ctrl + Enter to compare</span>
+        </div>
+        <div class="question-entry">
+          <textarea id="question-input" name="question" rows="2" maxlength="500" required aria-describedby="question-shortcut question-note question-status" placeholder="Compare two AI images a day with running a kettle once a day for a month"></textarea>
+          <div class="question-actions"><button type="submit" aria-keyshortcuts="Meta+Enter Control+Enter">Compare</button><button type="button" id="question-cancel" hidden>Cancel</button><button type="button" id="question-voice" aria-pressed="false" aria-describedby="question-voice-note" hidden>Dictate</button></div>
+        </div>
+        <p id="question-note">Cloudflare AI helps match ambiguous questions. <span id="question-voice-note" hidden>Dictation may send audio to your browser’s speech service.</span></p>
+        <p id="question-status" class="question-status" role="status" aria-live="polite" aria-atomic="true"></p>
+        <p id="question-voice-status" class="question-status" role="status" aria-live="polite" aria-atomic="true"></p>
+      </form>
       <div class="comparison-tools">
         <div class="examples"><label for="examples">Examples</label><select id="examples"></select></div>
         <div class="choice-actions">
-          <button type="button" id="add-choice"><span aria-hidden="true">+</span> Add choice</button>
+          <button type="button" id="add-choice"><span aria-hidden="true">+</span> Add activity</button>
           <button type="button" id="share-comparison">Share comparison</button>
         </div>
         <p id="share-status" class="share-status" role="status" aria-live="polite" aria-atomic="true"></p>
@@ -47,17 +48,17 @@
       </div>
       <div class="choices" id="choices" role="region" aria-label="Activity choices"></div>
       <section class="results" aria-labelledby="results-title">
-        <div class="results-heading"><div><h2 id="results-title">Estimated impact over 12 months</h2><p id="bar-guide">Bar lengths compare the size of the estimates within each row.</p></div><label class="hide-measures"><input type="checkbox" id="shared-only"> Only show measures available for all choices</label></div>
+        <div class="results-heading"><h2 id="results-title">Estimated impact over 12 months</h2><label class="hide-measures"><input type="checkbox" id="shared-only"> Shared measures only</label></div>
         <form id="comparison-horizon" class="comparison-horizon" aria-label="Comparison period" aria-describedby="horizon-note horizon-error">
           <label for="horizon-amount">Comparison period<input id="horizon-amount" type="number" min="1" max="1000" step="1" value="12" inputmode="numeric" required></label>
           <label for="horizon-unit">Unit<select id="horizon-unit"><option value="days">Days</option><option value="weeks">Weeks</option><option value="months" selected>Months</option><option value="years">Years</option></select></label>
-          <p id="horizon-note">Recurring activities are averaged over the period. One-off actions count once.</p>
+          <p id="horizon-note">One-off activities count once. Recurring activities are averaged over the period.</p>
           <p id="horizon-error" role="status" hidden></p>
         </form>
         <div id="grid-scenario" class="grid-scenario" hidden>
           <label for="estimate-grid">Estimate emissions from electricity</label>
           <select id="estimate-grid" aria-describedby="grid-scope"></select>
-          <p id="grid-scope">Choose an assumed grid to fill gaps in greenhouse gas estimates. This covers only the electricity counted by each source. The actual power supply can differ.</p>
+          <p id="grid-scope">Applies only to electricity use without a published emissions figure.</p>
         </div>
         <div id="coverage-summary" class="coverage-summary" role="status" aria-live="polite" aria-atomic="true"></div>
         <div id="result-rows" class="result-scroll" role="region" aria-label="Impact measures" tabindex="0"></div>

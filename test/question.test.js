@@ -15,8 +15,8 @@ class Control {
     if (!this.listeners.has(type)) this.listeners.set(type, []);
     this.listeners.get(type).push(callback);
   }
-  async emit(type) {
-    await Promise.all((this.listeners.get(type) || []).map(callback => callback({ preventDefault() {} })));
+  async emit(type, event = {}) {
+    await Promise.all((this.listeners.get(type) || []).map(callback => callback({ preventDefault() {}, ...event })));
   }
   focus() { this.focused = true; }
 }
@@ -60,6 +60,38 @@ test('explicit submit sends only a validated question and preserves input', asyn
   assert.deepEqual(applied, [plan]);
   assert.equal(f.input.value, ' Compare apples and beef ');
   assert.equal(f.form.attributes.get('aria-busy'), 'false');
+});
+
+test('Command-Enter and Control-Enter submit through the form, leaving other keystrokes alone', async () => {
+  for (const modifier of ['metaKey', 'ctrlKey']) {
+    const pending = deferred();
+    let requests = 0;
+    let submission;
+    const applied = [];
+    const f = fixture(() => { requests += 1; return pending.promise; }, result => applied.push(result));
+    f.form.requestSubmit = submitter => {
+      assert.equal(submitter, f.submit);
+      submission = f.form.emit('submit');
+    };
+    let prevented = 0;
+    const enter = { key: 'Enter', preventDefault() { prevented += 1; } };
+    await f.input.emit('keydown', { ...enter, [modifier]: true });
+    assert.equal(f.input.attributes.get('aria-invalid'), 'true');
+    assert.equal(requests, 0);
+    f.input.value = 'Compare two showers';
+    for (const otherKeys of [{}, { shiftKey: true }, { isComposing: true, [modifier]: true }]) {
+      await f.input.emit('keydown', { ...enter, ...otherKeys });
+    }
+    assert.equal(prevented, 1);
+    await f.input.emit('keydown', { ...enter, [modifier]: true });
+    await f.input.emit('keydown', { ...enter, [modifier]: true, repeat: true });
+    await f.input.emit('keydown', { ...enter, [modifier]: true });
+    assert.equal(prevented, 4);
+    assert.equal(requests, 1);
+    pending.resolve(ok(plan));
+    await submission;
+    assert.deepEqual(applied, [plan]);
+  }
 });
 
 test('manual invalidation, typing, cancellation and newer submissions reject stale responses', async () => {
