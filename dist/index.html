@@ -30,7 +30,7 @@
           <span id="question-shortcut">⌘/Ctrl + Enter to compare</span>
         </div>
         <div class="question-entry">
-          <textarea id="question-input" name="question" rows="2" maxlength="500" required aria-describedby="question-shortcut question-note question-status" placeholder="Compare two AI images a day with running a kettle once a day for a month"></textarea>
+          <textarea id="question-input" name="question" rows="2" maxlength="500" required aria-describedby="question-shortcut question-note question-status" placeholder="Compare AI prompts with a beef meal"></textarea>
           <div class="question-actions"><button type="submit" aria-keyshortcuts="Meta+Enter Control+Enter">Compare</button><button type="button" id="question-cancel" hidden>Cancel</button><button type="button" id="question-voice" aria-pressed="false" aria-describedby="question-voice-note" hidden>Dictate</button></div>
         </div>
         <p id="question-note">Cloudflare AI helps match ambiguous questions. <span id="question-voice-note" hidden>Dictation may send audio to your browser’s speech service.</span></p>
@@ -39,9 +39,15 @@
       </form>
       <div class="comparison-tools">
         <div class="examples"><label for="examples">Examples</label><select id="examples"></select></div>
+        <form id="comparison-horizon" class="comparison-horizon" aria-label="Comparison period" aria-describedby="horizon-note horizon-error">
+          <label for="horizon-amount">Period<input id="horizon-amount" type="number" min="1" max="1000" step="1" value="12" inputmode="numeric" required></label>
+          <label for="horizon-unit"><span class="sr-only">Unit</span><select id="horizon-unit"><option value="days">Days</option><option value="weeks">Weeks</option><option value="months" selected>Months</option><option value="years">Years</option></select></label>
+          <p id="horizon-note" class="sr-only">One-off activities count once. Recurring activities are averaged over the period.</p>
+          <p id="horizon-error" role="status" hidden></p>
+        </form>
         <div class="choice-actions">
           <button type="button" id="add-choice"><span aria-hidden="true">+</span> Add activity</button>
-          <button type="button" id="share-comparison">Share comparison</button>
+          <button type="button" id="share-comparison" aria-label="Share comparison">Share</button>
         </div>
         <p id="share-status" class="share-status" role="status" aria-live="polite" aria-atomic="true"></p>
         <div id="share-fallback" class="share-fallback" hidden><label for="share-url">Comparison link<input id="share-url" type="url" readonly></label></div>
@@ -49,12 +55,6 @@
       <div class="choices" id="choices" role="region" aria-label="Activity choices"></div>
       <section class="results" aria-labelledby="results-title">
         <div class="results-heading"><h2 id="results-title">Estimated impact over 12 months</h2><label class="hide-measures"><input type="checkbox" id="shared-only"> Shared measures only</label></div>
-        <form id="comparison-horizon" class="comparison-horizon" aria-label="Comparison period" aria-describedby="horizon-note horizon-error">
-          <label for="horizon-amount">Comparison period<input id="horizon-amount" type="number" min="1" max="1000" step="1" value="12" inputmode="numeric" required></label>
-          <label for="horizon-unit">Unit<select id="horizon-unit"><option value="days">Days</option><option value="weeks">Weeks</option><option value="months" selected>Months</option><option value="years">Years</option></select></label>
-          <p id="horizon-note">One-off activities count once. Recurring activities are averaged over the period.</p>
-          <p id="horizon-error" role="status" hidden></p>
-        </form>
         <div id="grid-scenario" class="grid-scenario" hidden>
           <label for="estimate-grid">Estimate emissions from electricity</label>
           <select id="estimate-grid" aria-describedby="grid-scope"></select>

@@ -4,7 +4,7 @@
 
 Select an activity to browse or search the catalogue. **Add activity** adds an independent activity alongside it. **Try an alternative** compares the current activity with a compatible replacement or with skipping it. Both totals use the same quantity and schedule. Their difference appears underneath. Use **Edit schedule** to adjust the quantity or frequency. The comparison starts at 12 months and accepts periods of 1 to 1,000 days, weeks, months or years.
 
-Each card shows a measure shared by the current activities when possible. The table includes every measure with an estimate, with the most widely available first. **Details** shows the calculation, assumptions and evidence. The activity picker can filter candidates by shared measures. **Share comparison** copies a link that restores the activities, alternatives, schedules, period, shared-measures filter and assumed grid. It leaves out the question and microphone input.
+Each card shows a measure shared by the current activities when possible. Results include every measure with an estimate, with the most widely available first. On phones, each measure groups the activities vertically. Wider screens show a comparison table. **Details** shows the calculation, assumptions and evidence. The activity picker can filter candidates by shared measures. **Share** copies a link that restores the activities, alternatives, schedules, period, shared-measures filter and assumed grid. It leaves out the question and microphone input.
 
 Type a question into **Ask a comparison question** and select **Compare**, or press **Command–Enter** or **Ctrl–Enter**. Try “Compare two AI images a day with running a kettle once a day for a month.” The question selects catalogue records and fills in their schedules. Dictation is available in browsers that provide speech recognition. It fills in editable text and requires a separate submit.
 
@@ -13,6 +13,10 @@ General choices appear first. Open **Specific items** for individual models and 
 Try [building a web app and running a kettle](https://everyday-impact.pages.dev/?example=web-app-kettle) or [generating an image and lighting a bulb](https://everyday-impact.pages.dev/?example=image-light). Under Digital → AI, evidence labels distinguish benchmarks, provider studies, limited disclosures, published models and AI-modelled scenarios. Open a measure’s Details link to see the unit conversion, workload assumptions and source. The web-app scenarios scale a measured code-completion GPU factor by an illustrative output-token budget.
 
 For an electricity-only benchmark, you can select an assumed Australian grid to estimate greenhouse gases from the electricity the source counted. The grid estimate is labelled in the table. Details shows the kWh, the grid factor, both sources and the limits of the benchmark. Existing greenhouse gas factors keep their original source boundaries. Fish and meat portions each average three named cooked foods in equal proportions by mass. The ingredients and source values are listed in Details.
+
+## Interface design
+
+The interface adapts [Radix Themes spacing](https://www.radix-ui.com/themes/docs/theme/spacing), [typography](https://www.radix-ui.com/themes/docs/theme/typography) and [Radix Slate colors](https://www.radix-ui.com/colors) through CSS tokens in `dist/styles.css`. Native controls use shared surface, border, focus and radius styles. Use the existing space and type tokens for layout changes. At widths below 768px, the toolbar and results reflow vertically. Activity controls stack above their totals when their card is 400px wide or narrower.
 
 ## Local development
 

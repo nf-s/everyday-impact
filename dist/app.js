@@ -402,9 +402,20 @@ function resultCell(row, entry, measure) {
   const cell = row.insertCell();
   const { key, unit, barScale } = measure;
   const hasAlternative = entry.choice.kind === 'skip' || Boolean(entry.after);
+  cell.setAttribute('role', 'cell');
+  cell.setAttribute('headers', 'measure-' + key + ' result-activity-' + entry.letter);
+  const activity = el('div', 'result-activity');
+  activity.setAttribute('aria-hidden', 'true');
+  activity.append(el('span', 'result-activity-name', entry.letter + ' · ' + entry.title));
+  if (hasAlternative) activity.append(el('small', 'column-alternative', 'Alternative · ' +
+    (entry.after ? itemName(entry.afterGroup, entry.after) : 'Skip this activity')));
+  const totals = el('div', hasAlternative ? 'result-totals has-alternative' : 'result-totals');
+  cell.append(activity, totals);
   function appendTotal(value, item, group, label) {
-    if (label) cell.append(el('small', 'total-label', label));
-    cell.append(el('span', value === null ? 'metric-detail' : 'metric-value', totalText(value, key, unit)));
+    const total = el('div', 'result-total');
+    totals.append(total);
+    if (label) total.append(el('small', 'total-label', label));
+    total.append(el('span', value === null ? 'metric-detail' : 'metric-value', totalText(value, key, unit)));
     if (value === null) return;
     if (barScale) {
       const bar = el('div', 'metric-bar');
@@ -412,10 +423,10 @@ function resultCell(row, entry, measure) {
       const fill = el('div', value === 0 ? 'metric-fill' : 'metric-fill has-value');
       fill.style.width = (value / barScale * 100) + '%';
       bar.append(fill);
-      cell.append(bar);
+      total.append(bar);
     }
     const scope = totalScope(key, item, group);
-    if (scope) cell.append(el('small', 'total-scope', scope));
+    if (scope) total.append(el('small', 'total-scope', scope));
   }
   appendTotal(entry.current, entry.before, entry.group, hasAlternative ? 'Current' : '');
   if (hasAlternative) {
@@ -481,15 +492,21 @@ function renderResults() {
   }
   coverageSummary.hidden = !coverageSummary.childElementCount;
   const table = el('table', 'comparison-table');
+  table.setAttribute('role', 'table');
   table.setAttribute('aria-labelledby', 'results-title');
   table.style.setProperty('--choice-count', entries.length);
   const headingRow = table.createTHead().insertRow();
+  table.tHead.setAttribute('role', 'rowgroup');
+  headingRow.setAttribute('role', 'row');
   const measureHeading = el('th', '', 'Measure');
   measureHeading.scope = 'col';
+  measureHeading.setAttribute('role', 'columnheader');
   headingRow.append(measureHeading);
   for (const { letter, title, choice, group, after, afterGroup } of entries) {
     const header = el('th');
     header.scope = 'col';
+    header.id = 'result-activity-' + letter;
+    header.setAttribute('role', 'columnheader');
     header.append(el('small', 'column-letter', 'Activity ' + letter), title);
     if (after || choice.kind === 'skip') {
       header.append(el('small', 'column-alternative', 'Alternative · ' + (after ? itemName(afterGroup, after) : 'Skip this activity')));
@@ -507,14 +524,18 @@ function renderResults() {
   }
 
   const body = table.createTBody();
+  body.setAttribute('role', 'rowgroup');
   const sharedOnly = view('shared-only').checked;
   rows.sort((a, b) => b.count - a.count);
   for (const measure of rows) {
     const { key, metric, measures, count, unit } = measure;
     if (!count || (sharedOnly && !shared.includes(key))) continue;
     const row = body.insertRow();
+    row.setAttribute('role', 'row');
     const label = el('th', 'measure-text');
     label.scope = 'row';
+    label.id = 'measure-' + key;
+    label.setAttribute('role', 'rowheader');
     const details = el('button', 'measure-details');
     details.type = 'button';
     const eye = document.createElementNS('http://www.w3.org/2000/svg', 'svg');

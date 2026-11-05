@@ -1,15 +1,19 @@
-.comparison-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-bottom: 10px; }
-.choice-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-.choice-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 36px; padding: 6px 10px; font-size: 13px; }
-.choice-actions button span { font-size: 17px; line-height: 1; }
-.share-status { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 12px; }
+.comparison-tools { display: grid; grid-template-columns: minmax(180px, 1fr) auto auto; align-items: end; gap: var(--space-3) var(--space-4); margin-bottom: var(--space-4); }
+.comparison-tools .examples { display: grid; gap: var(--space-2); min-width: 0; }
+.comparison-tools .examples select { width: 100%; min-height: 44px; padding: var(--space-2) var(--space-6) var(--space-2) var(--space-3); font-size: var(--font-size-2); line-height: var(--line-height-2); }
+.choice-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+.choice-actions button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: 44px; padding: var(--space-2) var(--space-3); font-size: var(--font-size-2); line-height: var(--line-height-2); font-weight: 500; }
+.choice-actions button span { font-size: var(--font-size-4); line-height: 1; }
+.share-status { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: var(--font-size-1); line-height: var(--line-height-2); }
 .share-status:empty { display: none; }
-.share-status[data-error="true"] { color: #913737; }
-.share-fallback { flex-basis: 100%; min-width: 0; font-size: 12px; color: var(--muted); }
-.share-fallback label { display: block; }
-.share-fallback input { display: block; width: 100%; margin-top: 5px; font-size: 13px; }
-@media (max-width: 700px) {
-  .examples { flex: 1 1 260px; }
-  .choice-actions button { min-height: 44px; }
-  .share-fallback input { font-size: 16px; }
+.share-status[data-error="true"] { color: var(--danger); }
+.share-fallback { grid-column: 1 / -1; min-width: 0; font-size: var(--font-size-2); color: var(--muted); }
+.share-fallback label { display: grid; gap: var(--space-2); }
+.share-fallback input { display: block; width: 100%; font-size: var(--font-size-3); }
+@media (max-width: 767px) {
+  .comparison-tools { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+  .comparison-tools .examples { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--space-3); }
+  .comparison-tools .examples select { min-height: 44px; font-size: var(--font-size-3); line-height: var(--line-height-3); }
+  .choice-actions { width: 100%; }
+  .choice-actions button { flex: 1; min-height: 44px; }
 }
