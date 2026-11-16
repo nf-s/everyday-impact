@@ -18,6 +18,10 @@ For an electricity-only benchmark, you can select an assumed Australian grid to 
 
 The interface adapts [Radix Themes spacing](https://www.radix-ui.com/themes/docs/theme/spacing), [typography](https://www.radix-ui.com/themes/docs/theme/typography) and [Radix Slate colors](https://www.radix-ui.com/colors) through CSS tokens in `dist/styles.css`. The compact type scale uses 12px metadata, 13px labels and supporting text, 15px body and activity text, 18px section headings, 22px totals and 24px page headings (22px on phones). Headings use weight 600; native inputs retain 16px text on small screens and touch devices. Native controls use shared surface, border, focus and radius styles. Use the existing space and type tokens for layout changes. At widths below 768px, the toolbar and results reflow vertically. Activity controls stack above their totals when their card is 400px wide or narrower.
 
+## Design prototypes
+
+`prototypes/` holds five alternative layouts of the calculator: Sentence, Bars, True scale, Scale and Ledger. They import the catalogue and model from `dist/`, so their figures match the calculator, and they share one comparison through browser storage. Run `npm run start:prototypes` and open http://127.0.0.1:8000/prototypes/. The folder sits outside `dist/` and is not part of a release. The comparison question, dictation, sharing, the factor library and labour evidence are not wired in the prototypes. Fonts in `prototypes/fonts/` are self-hosted under the SIL Open Font Licence; licence texts are in `prototypes/fonts/licences/`.
+
 ## Local development
 
 Use Node.js 22.13 or later. Run `npm ci` and `npm test`. To run the full calculator, copy `wrangler.example.jsonc` to `wrangler.jsonc`, set the D1 database identifier for your project and authenticate with `npx wrangler login`. When copying from localhost or a loopback address, the link uses the public base configured by `rel="canonical"` in `dist/index.html`. Other deployments retain their own host.

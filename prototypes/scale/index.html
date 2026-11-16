@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Everyday impact — Scale</title>
+  <link rel="icon" href="../../dist/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../fonts/instrument-sans.css">
+  <link rel="stylesheet" href="../shared/widgets.css">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="./">Everyday impact</a>
+    <div class="frame" id="frame"></div>
+    <button type="button" id="add" class="add">Add activity</button>
+  </header>
+  <main>
+    <h1 class="sr-only">Compare everyday actions</h1>
+    <div class="bar">
+      <p id="range" class="range"></p>
+      <label class="context"><input type="checkbox" id="context" checked> Show common activities</label>
+    </div>
+    <div class="ladder" id="ladder">
+      <svg id="plot" aria-hidden="true"></svg>
+      <div id="marks"></div>
+      <div id="tip" class="tip" hidden></div>
+    </div>
+    <p id="missing" class="missing" hidden></p>
+    <p class="foot">Each step up the scale is ten times the step below. <a href="../../dist/credits.html">Sources and licences</a></p>
+  </main>
+</body>
+</html>
