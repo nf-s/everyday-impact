@@ -1,0 +1,160 @@
+/* The ledger table. Scoped to .ledger and themed by the page's colour properties. */
+.ledger {
+  .scroll {
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    border-top: 2px solid var(--ink);
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  th, td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    text-align: left;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  thead th {
+    position: sticky;
+    top: 0;
+    padding-top: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--ink);
+    background: var(--panel);
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    vertical-align: bottom;
+  }
+  thead th.num button { display: grid; justify-items: end; width: 100%; gap: 1px; text-transform: none; letter-spacing: 0; }
+  thead .measure {
+    max-width: 13ch;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: right;
+    white-space: normal;
+  }
+  thead .col-unit { font-size: 11.5px; color: var(--muted); }
+  thead th.focus .measure { color: var(--ink); font-weight: 600; }
+  thead th.num button:hover .measure { text-decoration: underline; text-underline-offset: 3px; }
+
+  .letter {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    width: 34px;
+    padding-right: 0;
+    background: var(--panel);
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+  .activity {
+    position: sticky;
+    left: 34px;
+    z-index: 1;
+    min-width: 250px;
+    max-width: 330px;
+    background: var(--panel);
+    white-space: normal;
+    box-shadow: 1px 0 0 var(--line);
+  }
+  thead .letter, thead .activity { z-index: 2; }
+  .name {
+    display: block;
+    font-weight: 500;
+    text-decoration: underline dotted var(--line-strong);
+    text-underline-offset: 4px;
+  }
+  .name:hover { text-decoration-color: var(--ink); }
+  .usage, .try { display: block; color: var(--muted); font-size: 13px; }
+  .try { color: var(--ledger-faint, #98a2b3); }
+  .try:hover, .usage:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  .narrow { display: none; }
+
+  .qty, .freq { color: var(--muted); }
+  td input, td select {
+    height: 24px;
+    border: 0;
+    border-bottom: 1px dotted var(--line-strong);
+    border-radius: 0;
+    background: none;
+    color: var(--ink);
+    padding: 0;
+  }
+  td input { width: 6ch; text-align: right; -moz-appearance: textfield; appearance: textfield; }
+  td input::-webkit-inner-spin-button { display: none; }
+  td input:hover, td select:hover, td input:focus, td select:focus { border-bottom: 1px solid var(--ink); outline: none; background: var(--accent-soft); }
+  td select { cursor: pointer; }
+  .freq input { width: 4ch; margin-right: 6px; }
+  .unit { margin: 0 6px 0 5px; }
+  .same { color: var(--muted); font-size: 13px; }
+
+  .num { position: relative; text-align: right; min-width: 96px; }
+  .num.focus { background: var(--ledger-focus, #f8fafc); }
+  .figure { text-align: right; }
+  button.figure:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .empty, .empty span { color: var(--line-strong); }
+  .delta { display: block; font-size: 12.5px; }
+  .delta.lower { color: var(--lower); }
+  .delta.higher { color: var(--higher); }
+  .bar {
+    position: absolute;
+    left: 12px;
+    bottom: 3px;
+    height: 3px;
+    max-width: calc(100% - 24px);
+    background: var(--accent);
+  }
+  .bar.alternative { background: none; border: 1px solid var(--accent); }
+  .cover { display: block; color: var(--muted); font-size: 12px; }
+
+  .alternative th, .alternative td { color: var(--ink-soft); }
+  .alternative .letter { text-align: right; padding-right: 2px; }
+  .alternative .name { font-weight: 400; }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom-color: var(--line-strong); }
+  tbody:hover th, tbody:hover td { background-color: var(--ledger-hover, #fbfcfd); }
+  tbody:hover .num.focus { background-color: var(--ledger-focus-hover, #f3f6f9); }
+
+  .end { width: 34px; padding-left: 0; text-align: center; }
+  .remove { width: 22px; height: 22px; color: var(--muted); font-size: 17px; line-height: 1; text-align: center; opacity: 0; }
+  tr:hover .remove, .remove:focus-visible { opacity: 1; }
+  .remove:hover { color: var(--higher); }
+
+  tfoot th, tfoot td { border-bottom: 0; padding-top: 9px; padding-bottom: 9px; }
+  tfoot .total th, tfoot .total td { border-top: 3px double var(--ink); font-weight: 600; }
+  tfoot .total .figure { font-weight: 600; }
+  tfoot .with th, tfoot .with td { border-top: 1px solid var(--line); }
+  tfoot .cover { font-weight: 400; }
+
+  .notes {
+    display: grid;
+    gap: 2px;
+    margin-top: 14px;
+    list-style: none;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  @media (hover: none) {
+    .try, .remove { opacity: 1; }
+  }
+  @media (max-width: 900px) {
+    .wide { display: none; }
+    .narrow { display: block; }
+    .usage { text-decoration: underline dotted var(--line-strong); text-underline-offset: 3px; }
+    .remove { opacity: 1; }
+    .activity { left: 0; min-width: 48vw; max-width: 56vw; }
+    .letter { display: none; }
+    th, td { padding: 7px 10px; }
+    .num { min-width: 84px; }
+  }
+}

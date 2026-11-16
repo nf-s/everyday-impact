@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Everyday impact — Sentence and ledger</title>
+  <link rel="icon" href="../../dist/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../fonts/fraunces.css">
+  <link rel="stylesheet" href="../fonts/hanken-grotesk.css">
+  <link rel="stylesheet" href="../shared/widgets.css">
+  <link rel="stylesheet" href="../shared/ledger-view.css">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="./">Everyday impact</a>
+    <div class="views" role="group" aria-label="View">
+      <button type="button" data-view="sentence" aria-pressed="true">Sentence</button>
+      <button type="button" data-view="ledger" aria-pressed="false">Ledger</button>
+    </div>
+    <a class="credits" href="../../dist/credits.html">Sources and licences</a>
+  </header>
+  <div class="controls">
+    <div class="frame" id="frame"></div>
+    <button type="button" id="add" class="add">Add an activity</button>
+  </div>
+  <main>
+    <h1 class="sr-only">Compare everyday actions</h1>
+    <section id="sentence-view" class="sentence-view" aria-label="Sentence view">
+      <div class="rail" id="rail">
+        <svg id="plot" aria-hidden="true"></svg>
+        <div id="tip" class="tip" hidden></div>
+      </div>
+      <div class="reading">
+        <ol id="rows" class="rows"></ol>
+        <p class="foot">Each step on the scale is ten times the one below. Faint lines are common activities at an illustrative schedule. Select one to add it.</p>
+      </div>
+    </section>
+    <section id="ledger-view" class="ledger" aria-label="Ledger view" hidden>
+      <div class="scroll" role="region" aria-label="Impact ledger" tabindex="0">
+        <table id="ledger-table"></table>
+      </div>
+      <ul class="notes" id="notes"></ul>
+    </section>
+  </main>
+</body>
+</html>

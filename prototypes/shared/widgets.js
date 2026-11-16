@@ -40,7 +40,7 @@ export function svg(tag, attributes = {}, ...children) {
 }
 
 const designs = [
-  ['sentence', 'Sentence'], ['bars', 'Bars'], ['true-scale', 'True scale'], ['scale', 'Scale'], ['ledger', 'Ledger']
+  ['combined', 'Sentence + Ledger'], ['sentence', 'Sentence'], ['bars', 'Bars'], ['true-scale', 'True scale'], ['scale', 'Scale'], ['ledger', 'Ledger']
 ];
 
 // The strip above each prototype. It belongs to the review harness, not to the design.

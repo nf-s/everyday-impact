@@ -20,7 +20,7 @@ The interface adapts [Radix Themes spacing](https://www.radix-ui.com/themes/docs
 
 ## Design prototypes
 
-`prototypes/` holds five alternative layouts of the calculator: Sentence, Bars, True scale, Scale and Ledger. They import the catalogue and model from `dist/`, so their figures match the calculator, and they share one comparison through browser storage. Run `npm run start:prototypes` and open http://127.0.0.1:8000/prototypes/. The folder sits outside `dist/` and is not part of a release. The comparison question, dictation, sharing, the factor library and labour evidence are not wired in the prototypes. Fonts in `prototypes/fonts/` are self-hosted under the SIL Open Font Licence; licence texts are in `prototypes/fonts/licences/`.
+`prototypes/` holds alternative layouts of the calculator. `combined/` is the current direction: a Sentence view with a scale beside it and a Ledger view, switched from the header. Sentence, Bars, True scale, Scale and Ledger are the first round it draws on. They import the catalogue and model from `dist/`, so their figures match the calculator, and they share one comparison through browser storage. Run `npm run start:prototypes` and open http://127.0.0.1:8000/prototypes/. The folder sits outside `dist/` and is not part of a release. The comparison question, dictation, sharing, the factor library and labour evidence are not wired in the prototypes. Fonts in `prototypes/fonts/` are self-hosted under the SIL Open Font Licence; licence texts are in `prototypes/fonts/licences/`.
 
 ## Local development
 
