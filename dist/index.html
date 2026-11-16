@@ -40,7 +40,11 @@
       </form>
       <div class="controls">
         <form id="comparison-horizon" class="frame" aria-label="Measure and period" aria-describedby="horizon-note horizon-error">
-          <select id="measure" aria-label="Measure"></select>
+          <button type="button" id="measure" class="measure-button" popovertarget="measure-menu" aria-haspopup="listbox" aria-expanded="false" aria-label="Measure" aria-describedby="measure-label"><span id="measure-label"></span></button>
+          <div id="measure-menu" class="measure-menu" popover>
+            <p class="measure-heading" aria-hidden="true"><span>Measure</span><span>Activities with a figure</span></p>
+            <div id="measure-list" role="listbox" aria-label="Measure"></div>
+          </div>
           <span>over</span>
           <input id="horizon-amount" type="number" min="1" max="1000" step="1" value="12" inputmode="numeric" required aria-label="Period length">
           <select id="horizon-unit" aria-label="Period unit"></select>

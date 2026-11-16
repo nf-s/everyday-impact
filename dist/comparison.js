@@ -47,14 +47,18 @@ export function hasAlternative(item) {
 
 const coverageEntry = (item, state) => ({ choice: item, ...resolve(item, state) });
 
-// Measures with at least one estimate, the most widely available first.
-export function metricKeys(state) {
+// How many activities have an estimate for each measure, the most widely available first.
+export function metricCoverage(state) {
   const counts = new Map(Object.keys(comparisonMetrics).map(key => [key, 0]));
   for (const item of state.choices) {
     const { before } = resolve(item, state);
     for (const key of choiceCoverage({ choice: item, before, after: null })) counts.set(key, counts.get(key) + 1);
   }
-  return [...counts].filter(([, count]) => count > 0).sort((a, b) => b[1] - a[1]).map(([key]) => key);
+  return [...counts].filter(([, count]) => count > 0).sort((a, b) => b[1] - a[1]).map(([key, count]) => ({ key, count }));
+}
+
+export function metricKeys(state) {
+  return metricCoverage(state).map(({ key }) => key);
 }
 
 export function sharedKeys(state) {

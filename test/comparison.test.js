@@ -5,7 +5,7 @@ import { impactParts } from '../dist/model.js';
 import { serializeComparison, parseComparison } from '../dist/share-state.js';
 import { exampleOptions, exampleChoices, defaultExample } from '../dist/examples.js';
 import {
-  createStore, grids, metricKeys, sharedKeys, estimate, resolve, usageText, format, alternativePool, needsGrid,
+  createStore, grids, metricKeys, metricCoverage, sharedKeys, estimate, resolve, usageText, format, alternativePool, needsGrid,
   gridCompletesCarbon, waterScopesDiffer, scopeLabel, measureEntry, measureUnit, shareState, usesGroup, generalEntries, entryTotal
 } from '../dist/comparison.js';
 
@@ -33,6 +33,9 @@ test('loading a comparison picks the most widely available measure and keeps oth
   const store = loaded(shower, flight);
   assert.equal(store.state.metric, 'carbon');
   assert.deepEqual(metricKeys(store.state), ['carbon', 'water']);
+  assert.deepEqual(metricCoverage(store.state), [{ key: 'carbon', count: 1 }, { key: 'water', count: 1 }]);
+  assert.deepEqual(metricCoverage(loaded(flight, beef, shower).state).slice(0, 2), [{ key: 'carbon', count: 2 }, { key: 'water', count: 1 }]);
+  assert.deepEqual(metricCoverage(createStore().state), []);
   assert.deepEqual(sharedKeys(store.state), []);
   store.setHorizon({ amount: 3, unit: 'months' });
   store.load({ choices: [shower] });

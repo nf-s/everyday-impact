@@ -1,9 +1,9 @@
 import { validCatalogueChoice } from './entries.js';
-import { comparisonMetrics, horizonLabel, horizonUnits, validHorizon } from './model.js';
-import { h } from './dom.js';
-import { createStore, grids, metricKeys, needsGrid, usesGroup, shareState } from './comparison.js';
+import { horizonLabel, horizonUnits, validHorizon } from './model.js';
+import { createStore, grids, needsGrid, usesGroup, shareState } from './comparison.js';
 import { exampleOptions, exampleChoices, defaultExample } from './examples.js';
 import { createActions } from './actions.js';
+import { mountMeasureMenu } from './measure-menu.js';
 import { mountWords } from './words-view.js';
 import { mountTable } from './table-view.js';
 import { mountLibrary, mountLabour } from './library.js';
@@ -16,7 +16,6 @@ const store = createStore();
 const actions = createActions(store);
 const gridIds = grids.map(grid => grid.id);
 
-const metricSelect = view('measure');
 const amountInput = view('horizon-amount');
 const unitSelect = view('horizon-unit');
 const gridSelect = view('estimate-grid');
@@ -28,8 +27,6 @@ examples.replaceChildren(new Option('Custom comparison', 'custom'), ...exampleOp
 examples.options[0].disabled = true;
 
 function syncControls(state) {
-  metricSelect.replaceChildren(...metricKeys(state).map(key => h('option', { value: key, text: comparisonMetrics[key].label, selected: key === state.metric })));
-  metricSelect.disabled = !metricSelect.options.length;
   if (document.activeElement !== amountInput) amountInput.value = String(state.horizon.amount);
   unitSelect.value = state.horizon.unit;
   gridSelect.value = state.grid;
@@ -44,7 +41,7 @@ function updateHorizon() {
   if (!valid) view('horizon-error').textContent = 'Enter a whole number from 1 to 1,000. Results still use ' + horizonLabel(store.state.horizon) + '.';
 }
 
-metricSelect.addEventListener('change', () => store.setMetric(metricSelect.value));
+mountMeasureMenu({ button: view('measure'), label: view('measure-label'), panel: view('measure-menu'), list: view('measure-list'), store });
 gridSelect.addEventListener('change', () => store.setGrid(gridSelect.value));
 view('comparison-horizon').addEventListener('input', event => { if (event.target === amountInput || event.target === unitSelect) updateHorizon(); });
 view('comparison-horizon').addEventListener('submit', event => {
