@@ -5,6 +5,46 @@ export function el(tag, className, text) {
   return node;
 }
 
+const present = children => children.flat(Infinity).filter(child => child !== null && child !== undefined && child !== false);
+
+function assign(node, attributes) {
+  for (const [name, value] of Object.entries(attributes)) {
+    if (value === false || value === null || value === undefined) continue;
+    if (name === 'class') node.setAttribute('class', value);
+    else if (name === 'text') node.textContent = value;
+    else if (name.startsWith('on')) node.addEventListener(name.slice(2), value);
+    else if (name === 'dataset') Object.assign(node.dataset, value);
+    else node.setAttribute(name, value === true ? '' : value);
+  }
+}
+
+// Builds an element from attributes and children. Empty children are skipped and lists are flattened.
+export function h(tag, attributes = {}, ...children) {
+  const node = document.createElement(tag);
+  assign(node, attributes);
+  node.append(...present(children));
+  return node;
+}
+
+export function svg(tag, attributes = {}, ...children) {
+  const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  assign(node, attributes);
+  node.append(...present(children));
+  return node;
+}
+
+export function fill(node, ...children) {
+  node.replaceChildren(...present(children));
+  return node;
+}
+
+// Rebuilt controls carry a data-focus key so keyboard focus can follow them.
+export function refocus(key) {
+  for (const node of document.querySelectorAll('[data-focus]')) {
+    if (node.dataset.focus === key && node.offsetParent !== null) return node.focus({ preventScroll: true });
+  }
+}
+
 const evidenceIcons = {
   'Modelled scenario': 'M5 2h6 M6 2v4l-4 6a1 1 0 0 0 1 2h10a1 1 0 0 0 1-2l-4-6V2 M4 10h8',
   'Limited disclosure': 'M8 2 1.5 14h13L8 2Z M8 6v3 M8 11.3v.3',

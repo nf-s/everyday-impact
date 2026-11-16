@@ -3,79 +3,88 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f6f8fb">
+  <meta name="theme-color" content="#fbfaf7">
   <meta name="description" content="Compare the footprint of everyday actions and lifestyle changes, and inspect the evidence behind each estimate.">
   <title>Everyday impact</title>
   <link rel="canonical" href="https://everyday-impact.pages.dev/">
   <link rel="icon" href="mark.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/files/fraunces-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/files/hanken-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="question.css">
-  <link rel="stylesheet" href="share.css">
+  <link rel="stylesheet" href="table.css">
   <script type="module" src="app.js"></script>
 </head>
 <body>
   <a href="#main" class="skip">Skip to content</a>
-  <header class="masthead"><div class="shell mast-inner">
-    <a class="brand" href="#compare"><img src="mark.svg" width="34" height="34" alt="">Everyday impact</a>
-    <nav aria-label="Main navigation"><a href="#compare" aria-current="page">Compare</a><a href="#library">Factor library</a><a href="#labour">Labour evidence</a></nav>
-  </div></header>
-  <main id="main" class="shell">
+  <header class="top">
+    <a class="brand" href="#compare"><img src="mark.svg" width="24" height="24" alt="">Everyday impact</a>
+    <div class="views" role="group" aria-label="View">
+      <a href="#compare" aria-current="page">In words</a>
+      <a href="#numbers">In numbers</a>
+    </div>
+    <nav aria-label="Main navigation"><a href="#library">Factor library</a><a href="#labour">Labour evidence</a><a href="credits.html">Sources and licences</a></nav>
+  </header>
+  <main id="main">
     <section id="compare" aria-labelledby="compare-title">
-      <div class="page-heading">
-        <h1 id="compare-title">Compare everyday actions</h1>
-      </div>
+      <h1 id="compare-title" class="sr-only">Compare everyday actions</h1>
       <form id="question-form" class="question-form" novalidate aria-busy="false" aria-labelledby="question-label">
-        <div class="question-heading">
-          <label id="question-label" for="question-input">Ask a comparison question</label>
-          <span id="question-shortcut">⌘/Ctrl + Enter to compare</span>
-        </div>
+        <label id="question-label" for="question-input">Ask a comparison question</label>
         <div class="question-entry">
-          <textarea id="question-input" name="question" rows="2" maxlength="500" required aria-describedby="question-shortcut question-note question-status" placeholder="Compare AI prompts with a beef meal"></textarea>
+          <textarea id="question-input" name="question" rows="1" maxlength="500" required aria-describedby="question-shortcut question-note question-status" placeholder="Compare AI prompts with a beef meal"></textarea>
           <div class="question-actions"><button type="submit" aria-keyshortcuts="Meta+Enter Control+Enter">Compare</button><button type="button" id="question-cancel" hidden>Cancel</button><button type="button" id="question-voice" aria-pressed="false" aria-describedby="question-voice-note" hidden>Dictate</button></div>
         </div>
-        <p id="question-note">Cloudflare AI helps match ambiguous questions. <span id="question-voice-note" hidden>Dictation may send audio to your browser’s speech service.</span></p>
+        <p id="question-note">Cloudflare AI helps match ambiguous questions. <span id="question-shortcut">⌘/Ctrl + Enter to compare.</span> <span id="question-voice-note" hidden>Dictation may send audio to your browser’s speech service.</span></p>
         <p id="question-status" class="question-status" role="status" aria-live="polite" aria-atomic="true"></p>
         <p id="question-voice-status" class="question-status" role="status" aria-live="polite" aria-atomic="true"></p>
       </form>
-      <div class="comparison-tools">
-        <div class="examples"><label for="examples">Examples</label><select id="examples"></select></div>
-        <form id="comparison-horizon" class="comparison-horizon" aria-label="Comparison period" aria-describedby="horizon-note horizon-error">
-          <label for="horizon-amount">Period<input id="horizon-amount" type="number" min="1" max="1000" step="1" value="12" inputmode="numeric" required></label>
-          <label for="horizon-unit"><span class="sr-only">Unit</span><select id="horizon-unit"><option value="days">Days</option><option value="weeks">Weeks</option><option value="months" selected>Months</option><option value="years">Years</option></select></label>
+      <div class="controls">
+        <form id="comparison-horizon" class="frame" aria-label="Measure and period" aria-describedby="horizon-note horizon-error">
+          <select id="measure" aria-label="Measure"></select>
+          <span>over</span>
+          <input id="horizon-amount" type="number" min="1" max="1000" step="1" value="12" inputmode="numeric" required aria-label="Period length">
+          <select id="horizon-unit" aria-label="Period unit"></select>
+          <label id="grid-scenario" class="grid-field" hidden><span>Electricity grid</span><select id="estimate-grid" aria-describedby="grid-scope"></select></label>
           <p id="horizon-note" class="sr-only">One-off activities count once. Recurring activities are averaged over the period.</p>
-          <p id="horizon-error" role="status" hidden></p>
+          <p id="grid-scope" class="sr-only">Applies only to electricity use without a published emissions figure.</p>
         </form>
-        <div class="choice-actions">
-          <button type="button" id="add-choice"><span aria-hidden="true">+</span> Add activity</button>
-          <button type="button" id="share-comparison" aria-label="Share comparison">Share</button>
+        <div class="tools">
+          <label class="examples"><span>Examples</span><select id="examples"></select></label>
+          <button type="button" id="share-comparison" class="quiet" aria-label="Share comparison">Share</button>
+          <button type="button" id="add-choice" class="add">Add an activity</button>
         </div>
-        <p id="share-status" class="share-status" role="status" aria-live="polite" aria-atomic="true"></p>
+        <p id="horizon-error" class="status" role="status" data-error="true" hidden></p>
+        <p id="share-status" class="status" role="status" aria-live="polite" aria-atomic="true"></p>
         <div id="share-fallback" class="share-fallback" hidden><label for="share-url">Comparison link<input id="share-url" type="url" readonly></label></div>
       </div>
-      <div class="choices" id="choices" role="region" aria-label="Activity choices"></div>
-      <section class="results" aria-labelledby="results-title">
-        <div class="results-heading"><h2 id="results-title">Estimated impact over 12 months</h2><label class="hide-measures"><input type="checkbox" id="shared-only"> Shared measures only</label></div>
-        <div id="grid-scenario" class="grid-scenario" hidden>
-          <label for="estimate-grid">Estimate emissions from electricity</label>
-          <select id="estimate-grid" aria-describedby="grid-scope"></select>
-          <p id="grid-scope">Applies only to electricity use without a published emissions figure.</p>
+      <div id="words-view" class="words" role="region" aria-label="In words">
+        <div class="rail" id="rail">
+          <svg id="plot" aria-hidden="true"></svg>
+          <div id="tip" class="tip" hidden></div>
         </div>
-        <div id="coverage-summary" class="coverage-summary" role="status" aria-live="polite" aria-atomic="true"></div>
-        <div id="result-rows" class="result-scroll" role="region" aria-label="Impact measures" tabindex="0"></div>
-        <p id="electronics-credit" class="lib-intro" hidden>Electronics estimates use the <a href="credits.html#electronics">Boavizta dataset under ODbL 1.0</a>.</p>
-        <p id="measure-note" class="result-note"></p>
-      </section>
+        <div class="reading">
+          <ol id="rows" class="rows"></ol>
+          <ul id="words-notes" class="notes"></ul>
+        </div>
+      </div>
+      <div id="numbers-view" class="numbers" role="region" aria-label="In numbers" hidden>
+        <label class="table-options"><input type="checkbox" id="shared-only"> Shared measures only</label>
+        <div class="scroll" role="region" aria-label="Impact table" tabindex="0">
+          <table id="numbers-table"></table>
+        </div>
+        <ul id="numbers-notes" class="notes"></ul>
+      </div>
+      <p id="electronics-credit" class="credit" hidden>Electronics estimates use the <a href="credits.html#electronics">Boavizta dataset under ODbL 1.0</a>.</p>
     </section>
-    <section id="library" aria-labelledby="library-title" hidden>
-      <div class="page-heading"><div><h1 id="library-title">Factor library</h1><p id="library-count"></p></div></div>
+    <section id="library" class="page" aria-labelledby="library-title" hidden>
+      <div class="page-heading"><h1 id="library-title">Factor library</h1><p id="library-count"></p></div>
       <div class="library-filters"><label>Search factors<input type="search" id="search" placeholder="e.g. tofu, train or cotton"></label><label>Category<select id="filter-category"></select></label></div>
       <div id="library-groups"></div>
     </section>
-    <section id="labour" aria-labelledby="labour-title" hidden>
-      <div class="page-heading"><div><h1 id="labour-title">Labour evidence</h1><p>What the available sources establish about a brand and its supply chain.</p></div></div>
+    <section id="labour" class="page" aria-labelledby="labour-title" hidden>
+      <div class="page-heading"><h1 id="labour-title">Labour evidence</h1><p>What the available sources establish about a brand and its supply chain.</p></div>
       <div id="labour-records"></div>
     </section>
-    <footer class="credits-footer"><a href="credits.html">Sources and licences</a></footer>
     <noscript>Enable JavaScript to use the calculator and browse its factors.</noscript>
   </main>
 </body>

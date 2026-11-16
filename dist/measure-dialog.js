@@ -74,7 +74,7 @@ function totalLine(label, total, key, unit) {
 function renderEntry(entry, key, unit, horizon) {
   const { letter, title, choice, group, before, after, afterGroup, current, alternative, difference } = entry;
   const section = el('section', 'measure-dialog-entry');
-  section.append(el('h3', '', 'Activity ' + letter + ' · ' + title));
+  section.append(el('h3', '', letter ? 'Activity ' + letter + ' · ' + title : title));
   const currentLabel = choice.kind === 'footprint' ? 'Total' : 'Current · ' + before.label;
   section.append(totalLine(currentLabel, current, key, unit));
   if (after) section.append(totalLine('Alternative · ' + after.label, alternative, key, unit));

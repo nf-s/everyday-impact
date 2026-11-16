@@ -1,4 +1,4 @@
-import { periods, validAmount, validHorizon } from './model.js';
+import { comparisonMetrics, periods, validAmount, validHorizon } from './model.js';
 
 const version = 1;
 const maxChoices = 50;
@@ -31,11 +31,13 @@ function cleanState(value, validateChoice, gridIds) {
   }
   if (!object(value) || !Array.isArray(value.choices) || value.choices.length < 1 || value.choices.length > maxChoices ||
       !validHorizon(value.horizon) || typeof value.sharedOnly !== 'boolean' ||
-      (value.grid !== undefined && value.grid !== '' && (!id(value.grid) || !gridIds.includes(value.grid)))) throw invalid();
+      (value.grid !== undefined && value.grid !== '' && (!id(value.grid) || !gridIds.includes(value.grid))) ||
+      (value.metric !== undefined && (typeof value.metric !== 'string' || !Object.hasOwn(comparisonMetrics, value.metric)))) throw invalid();
   return {
     choices: value.choices.map(choice => cleanChoice(choice, validateChoice)),
     horizon: { amount: value.horizon.amount, unit: value.horizon.unit },
-    sharedOnly: value.sharedOnly, grid: value.grid || ''
+    sharedOnly: value.sharedOnly, grid: value.grid || '',
+    ...(value.metric === undefined ? {} : { metric: value.metric })
   };
 }
 
@@ -45,7 +47,8 @@ export function serializeComparison(value, validateChoice, gridIds = []) {
     v: version,
     c: state.choices.map(choice => choice === null ? null : [choice.group, choice.before, choice.after, choice.kind, choice.amount, choice.period, choice.times, ...(choice.afterGroup ? [choice.afterGroup] : [])]),
     h: [state.horizon.amount, state.horizon.unit], s: state.sharedOnly,
-    ...(state.grid ? { g: state.grid } : {})
+    ...(state.grid ? { g: state.grid } : {}),
+    ...(state.metric ? { m: state.metric } : {})
   });
   if (encoded.length > maxStateLength) throw new ShareLimitError('This comparison link is too long. Remove some choices and try again.');
   return encoded;
@@ -55,7 +58,7 @@ export function parseComparison(encoded, validateChoice, gridIds = []) {
   if (typeof encoded !== 'string' || !encoded || encoded.length > maxStateLength) throw invalid();
   let wire;
   try { wire = JSON.parse(encoded); } catch { throw invalid(); }
-  if (!object(wire) || wire.v !== version || Object.keys(wire).some(key => !['v', 'c', 'h', 's', 'g'].includes(key)) ||
+  if (!object(wire) || wire.v !== version || Object.keys(wire).some(key => !['v', 'c', 'h', 's', 'g', 'm'].includes(key)) ||
       !Array.isArray(wire.c) || !Array.isArray(wire.h) || wire.h.length !== 2) throw invalid();
   const choices = wire.c.map(row => {
     if (row === null) return null;
@@ -63,7 +66,7 @@ export function parseComparison(encoded, validateChoice, gridIds = []) {
     const [group, before, after, kind, amount, period, times, afterGroup] = row;
     return { group, before, after, kind, amount, period, times, ...(row.length === 8 ? { afterGroup } : {}) };
   });
-  return cleanState({ choices, horizon: { amount: wire.h[0], unit: wire.h[1] }, sharedOnly: wire.s, grid: wire.g }, validateChoice, gridIds);
+  return cleanState({ choices, horizon: { amount: wire.h[0], unit: wire.h[1] }, sharedOnly: wire.s, grid: wire.g, metric: wire.m }, validateChoice, gridIds);
 }
 
 // Only share construction uses this override; opening a local page never redirects.

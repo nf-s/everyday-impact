@@ -53,26 +53,12 @@ function sizeOpenPicker() {
 window.visualViewport?.addEventListener('resize', sizeOpenPicker);
 window.visualViewport?.addEventListener('scroll', sizeOpenPicker);
 
-export function activityPicker(entries, current, letter, onSelect, options = {}) {
-  const wrapper = el('div', 'picker');
-  const labelText = options.label || 'Choice ' + letter;
-  const suffix = String(letter).replace(/[^a-zA-Z0-9_-]/g, '-');
-  const label = el('label', '', labelText);
-  label.htmlFor = 'activity-' + suffix;
-  label.id = 'label-' + suffix;
-  const trigger = el('button', 'picker-trigger');
-  trigger.type = 'button';
-  trigger.id = label.htmlFor;
-  const value = el('span', '', current || 'Search or browse');
-  value.id = 'selected-' + suffix;
-  trigger.append(value);
-  trigger.setAttribute('aria-labelledby', label.id + ' ' + value.id);
-  trigger.setAttribute('aria-haspopup', 'dialog');
-  trigger.setAttribute('aria-expanded', 'false');
+// Opens the catalogue as a modal dialog. options.label names the dialog, options.flat lists a
+// short pool without categories, and options.onSkip adds a "Skip this activity" choice.
+export function openActivityPicker(entries, onSelect, options = {}) {
+  const labelText = options.label || 'Choose an activity';
   const panel = el('dialog', 'picker-panel');
-  panel.id = 'picker-' + suffix;
   panel.setAttribute('aria-label', labelText);
-  trigger.setAttribute('aria-controls', panel.id);
   const input = el('input');
   input.type = 'search';
   input.autocomplete = 'off';
@@ -96,9 +82,9 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
   const list = el('div', 'picker-list');
-  list.id = 'options-' + suffix;
+  list.id = 'picker-options';
   list.setAttribute('role', 'listbox');
-  list.setAttribute('aria-label', 'Browse categories for choice ' + letter);
+  list.setAttribute('aria-label', labelText);
   input.setAttribute('aria-controls', list.id);
   toolbar.append(input, close);
   navigation.append(back, breadcrumb);
@@ -122,8 +108,8 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
     results.append(skip);
   }
   results.append(navigation, coverageFilter, status, list, more);
-  panel.append(toolbar, results);
-  wrapper.append(label, trigger, panel);
+  navigation.hidden = Boolean(options.flat);
+  panel.append(el('h2', 'picker-title', labelText), toolbar, results);
 
   let path = [];
   let specifics = false;
@@ -206,7 +192,8 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
         const kind = subgroups.size ? 'group' : 'item';
         return { type: 'branch', label: name, detail: count + ' ' + kind + (count === 1 ? '' : 's') };
       });
-      if (specifics) visible = originals.map(itemRow);
+      if (options.flat) visible = indexed.map(itemRow);
+      else if (specifics) visible = originals.map(itemRow);
       else {
         visible = [...generic.map(itemRow), ...branchRows];
         if (generic.length && originals.length) visible.push({ type: 'specifics', label: 'Specific items', detail: originals.length + (originals.length === 1 ? ' item' : ' items') });
@@ -245,32 +232,9 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
     results.scrollTop = scrollTop;
     breadcrumb.scrollLeft = breadcrumb.scrollWidth;
   }
-  function show(query = '') {
-    path = [];
-    specifics = false;
-    input.value = query;
-    render();
-    panel.showModal();
-    sizeOpenPicker();
-    trigger.setAttribute('aria-expanded', 'true');
-    if (query) input.focus();
-    else focusForBrowsing();
-  }
-  trigger.addEventListener('click', () => show());
-  trigger.addEventListener('keydown', event => {
-    if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
-    const text = event.key.length === 1 && event.key !== ' ';
-    if (!text && event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-    event.preventDefault();
-    show(text ? event.key : '');
-    input.focus();
-    if (!text && visible.length) highlight(0);
-  });
   close.addEventListener('click', () => panel.close());
-  panel.addEventListener('close', () => {
-    trigger.setAttribute('aria-expanded', String(panel.open));
-    if (!panel.open && trigger.isConnected) trigger.focus({ preventScroll: true });
-  });
+  // The browser returns focus to the control that opened the dialog.
+  panel.addEventListener('close', () => panel.remove());
   panel.addEventListener('click', event => {
     if (event.target !== panel) return;
     const rect = panel.getBoundingClientRect();
@@ -313,5 +277,9 @@ export function activityPicker(entries, current, letter, onSelect, options = {})
       navigate(specifics ? path : path.slice(0, -1));
     }
   });
-  return wrapper;
+  document.body.append(panel);
+  render();
+  panel.showModal();
+  sizeOpenPicker();
+  focusForBrowsing();
 }

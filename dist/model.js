@@ -156,10 +156,24 @@ export function formatDifference(value, key, unit = comparisonMetrics[key].unit)
   return formatEstimate(value, key, 'swap', unit);
 }
 
+// Scales a total to a readable unit, such as tonnes or millilitres.
+export function impactParts(value, key) {
+  if (!Number.isFinite(value)) return { text: '–', unit: '' };
+  const magnitude = Math.abs(value);
+  const sign = value < 0 ? '−' : '';
+  const water = key === 'water' || waterMetrics.includes(key);
+  const scaled = (factor, unit) => ({ text: sign + number(magnitude * factor), unit });
+  if (key === 'carbon' && magnitude >= 1000) return scaled(0.001, 't CO₂e');
+  if (key === 'carbon' && magnitude > 0 && magnitude < 0.1) return scaled(1000, 'g CO₂e');
+  if (key === 'energy' && magnitude >= 1000) return scaled(0.001, 'MWh');
+  if (key === 'energy' && magnitude > 0 && magnitude < 0.1) return scaled(1000, 'Wh');
+  if (water && magnitude >= 1000000) return scaled(0.000001, 'ML');
+  if (water && magnitude >= 10000) return scaled(0.001, 'kL');
+  if (water && magnitude > 0 && magnitude < 1) return scaled(1000, 'mL');
+  return scaled(1, water ? comparisonMetrics.water.unit : metrics[key].unit);
+}
+
 export function displayImpact(value, key) {
-  if (key === 'carbon' && value >= 1000) return number(value / 1000) + ' t CO₂e';
-  if (key === 'carbon' && value > 0 && value < 0.1) return number(value * 1000) + ' g CO₂e';
-  if (key === 'energy' && value > 0 && value < 0.1) return number(value * 1000) + ' Wh';
-  if ((key === 'water' || waterMetrics.includes(key)) && value > 0 && value < 1) return number(value * 1000) + ' mL';
-  return number(value) + ' ' + (key === 'water' ? comparisonMetrics.water.unit : metrics[key].unit);
+  const { text, unit } = impactParts(value, key);
+  return unit ? text + ' ' + unit : text;
 }
