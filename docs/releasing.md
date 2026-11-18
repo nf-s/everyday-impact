@@ -1,5 +1,7 @@
 # Production releases
 
+The Cloudflare Pages project, its `everyday-impact.pages.dev` address and the D1 database keep the name the app had before it was renamed Tenfold.
+
 Publish completed changes to the existing public Cloudflare Pages project `everyday-impact` after testing and pushing `main`. The deployed project owns the existing `AI` and `USAGE` bindings and native Cloudflare Web Analytics settings. Keep those settings unchanged for ordinary releases.
 
 Do not deploy from the repository root with `wrangler.jsonc`: Wrangler can clear the native Web Analytics settings. Instead, upload the committed static assets and Pages Function from a temporary directory without a Wrangler config. From a clean checkout of the approved release commit, after `npm ci` and `npm test`:

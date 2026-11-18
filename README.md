@@ -2,7 +2,7 @@
 
 <img src="dist/mark.svg" width="64" height="64" alt="">
 
-# Everyday impact
+# Tenfold
 
 Compare the footprint of everyday actions and lifestyle changes, and inspect the evidence behind each estimate.
 
