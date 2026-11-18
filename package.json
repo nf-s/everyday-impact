@@ -10,5 +10,6 @@
   },
   "devDependencies": {
     "wrangler": "4.155.0"
-  }
+  },
+  "license": "CC0-1.0"
 }

@@ -52,9 +52,13 @@ Open http://127.0.0.1:8000. This serves the calculator without the question box.
 - [Production releases](docs/releasing.md)
 - [Sources and licences](https://everyday-impact.pages.dev/credits.html)
 
+## Made with AI
+
+The code, documentation and catalogue in this repository were generated almost entirely by AI coding agents, directed by the author. The agents selected, transcribed and converted the factors from the cited sources, and they can be wrong. Select a figure in the calculator to see its calculation and sources, and check the source before relying on it.
+
 ## Code licence
 
-The [MIT licence](LICENSE) covers the original application and test code. Its scope excludes all data and source materials, including the catalogue in `dist/data/`, factors and example quantities embedded in code or tests, evidence summaries, cited publications and third-party notices.
+The original application and test code are dedicated to the public domain under [CC0 1.0](LICENSE), without warranty. The dedication excludes all data and source materials, including the catalogue in `dist/data/`, factors and example quantities embedded in code or tests, evidence summaries, cited publications and third-party notices.
 
 ## Data attribution and reuse
 
